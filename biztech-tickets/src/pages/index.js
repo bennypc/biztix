@@ -40,7 +40,7 @@ export default function Home() {
         } else if (userData.role === 'mentor') {
           router.push('/mentor-dashboard');
         } else if (userData.role === 'organizer') {
-          router.push('/organizer-dashboard');
+          router.push('/organizer-dashboard/users');
         } else {
           alert('Unexpected role!');
         }
