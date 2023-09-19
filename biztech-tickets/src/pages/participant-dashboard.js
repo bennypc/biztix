@@ -55,41 +55,28 @@ const statuses = {
   active: 'text-rose-400 bg-rose-400/10'
 };
 
-// const questions = [
-//   {
-//     id: 1,
-//     href: '#',
-//     projectName: 'How do I compile C code?',
-//     teamName: 'BizTeching BizTechers',
-//     status: 'active',
-//     statusText: 'Asked 1m 32s ago',
-//     description: "Help I don't know what I'm doing"
-//   }
-// ];
-const activityItems = [
-  {
-    user: {
-      name: 'Michael Foster',
-      imageUrl:
-        'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
-    },
-    projectName: 'ios-app',
-    commit: '2d89f0c8',
-    branch: 'main',
-    date: '1h',
-    dateTime: '2023-01-23T11:00'
-  }
-  // More items...
-];
-
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
+}
+
+function timeAgo(timestamp) {
+  if (!timestamp) return 'Just now';
+
+  const now = new Date();
+  const questionDate = timestamp.toDate();
+  const secondsAgo = Math.floor((now - questionDate) / 1000);
+
+  if (secondsAgo < 60) return `${secondsAgo} seconds ago`;
+  if (secondsAgo < 3600) return `${Math.floor(secondsAgo / 60)} minutes ago`;
+  if (secondsAgo < 86400) return `${Math.floor(secondsAgo / 3600)} hours ago`;
+  return `${Math.floor(secondsAgo / 86400)} days ago`;
 }
 
 export default function ParticipantDashboard() {
   const { user } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [questions, setQuestions] = useState([]);
+  const router = useRouter();
 
   const [question, setQuestion] = useState('');
   const [category, setCategory] = useState('Front-end');
@@ -115,6 +102,7 @@ export default function ParticipantDashboard() {
       id: questionID,
       name: fullName,
       teamName: user.teamName,
+      question,
       category,
       description,
       status: 'active',
@@ -124,10 +112,20 @@ export default function ParticipantDashboard() {
     try {
       const docRef = await addDoc(collection(db, 'tickets'), newQuestion);
       console.log('Document written with ID: ', docRef.id);
+      setQuestion('');
+      setCategory('Front-end');
+      setDescription('');
     } catch (error) {
       console.error('Error adding document: ', error);
     }
   }
+
+  useEffect(() => {
+    if (!user || !user.firstName || !user.lastName) {
+      router.push('/'); // Redirect to root if user is not logged in
+    }
+  }, [user, router]);
+
   return (
     <div className='bg-[#070f21] min-h-screen'>
       <div>
@@ -252,7 +250,11 @@ export default function ParticipantDashboard() {
                               alt=''
                             />
                             <span className='sr-only'>Your profile</span>
-                            <span aria-hidden='true'>Benny Chinvanich</span>
+                            <span aria-hidden='true'>
+                              {user
+                                ? `${user.firstName} ${user.lastName}`
+                                : 'Loading...'}
+                            </span>
                           </a>
                         </li>
                       </ul>
@@ -297,7 +299,7 @@ export default function ParticipantDashboard() {
                 </li>
                 <li>
                   <div className='text-xs font-semibold leading-6 text-gray-400'>
-                    Your teams
+                    Your team
                   </div>
                   <ul role='list' className='-mx-2 mt-2 space-y-1'>
                     {teams.map((team) => (
@@ -331,7 +333,11 @@ export default function ParticipantDashboard() {
                       alt=''
                     />
                     <span className='sr-only'>Your profile</span>
-                    <span aria-hidden='true'>Benny Chinvanich</span>
+                    <span aria-hidden='true'>
+                      {user
+                        ? `${user.firstName} ${user.lastName}`
+                        : 'Loading...'}
+                    </span>
                   </a>
                 </li>
               </ul>
@@ -425,61 +431,58 @@ export default function ParticipantDashboard() {
 
             {/* Questions list */}
             <ul role='list' className='divide-y divide-white/5'>
-              {questions.map((deployment) => (
-                <li
-                  key={deployment.id}
-                  className='relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8'
-                >
-                  <div className='min-w-0 flex-auto'>
-                    <div className='flex items-center gap-x-3'>
-                      <div
-                        className={classNames(
-                          statuses[deployment.status],
-                          'flex-none rounded-full p-1'
-                        )}
-                      >
-                        <div className='h-2 w-2 rounded-full bg-current' />
-                      </div>
-                      <h2 className='min-w-0 text-sm font-semibold leading-6 text-white'>
-                        <a href={deployment.href} className='flex gap-x-2'>
-                          <span className='truncate'>
-                            {deployment.teamName}
-                          </span>
-                          <span className='text-gray-400'>/</span>
-                          <span className='whitespace-nowrap'>
-                            {deployment.projectName}
-                          </span>
-                          <span className='absolute inset-0' />
-                        </a>
-                      </h2>
-                    </div>
-                    <div className='mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
-                      <p className='truncate'>{deployment.description}</p>
-                      <svg
-                        viewBox='0 0 2 2'
-                        className='h-0.5 w-0.5 flex-none fill-gray-300'
-                      >
-                        <circle cx={1} cy={1} r={1} />
-                      </svg>
-                      <p className='whitespace-nowrap'>
-                        {deployment.statusText}
-                      </p>
-                    </div>
-                  </div>
-                  {/* <div
-                    className={classNames(
-                      environments[deployment.environment],
-                      'rounded-full flex-none py-1 px-2 text-xs font-medium ring-1 ring-inset'
-                    )}
+              {questions
+                .sort((a, b) => b.timestamp.seconds - a.timestamp.seconds)
+                .map((question) => (
+                  <li
+                    key={question.id}
+                    className='relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8'
                   >
-                    {deployment.environment}
-                  </div>
-                  <ChevronRightIcon
+                    <div className='min-w-0 flex-auto'>
+                      <div className='flex items-center gap-x-3'>
+                        <div
+                          className={classNames(
+                            statuses[question.status],
+                            'flex-none rounded-full p-1'
+                          )}
+                        >
+                          <div className='h-2 w-2 rounded-full bg-current' />
+                        </div>
+                        <h2 className='min-w-0 text-sm font-semibold leading-6 text-white'>
+                          <a href={question.href} className='flex gap-x-2'>
+                            <span className='truncate'>
+                              {question.teamName}
+                            </span>
+                            <span className='text-gray-400'>/</span>
+                            <span className='whitespace-nowrap'>
+                              {question.question}
+                            </span>
+                            <span className='absolute inset-0' />
+                          </a>
+                        </h2>
+                      </div>
+                      <div className='mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
+                        <p className='truncate'>{question.description}</p>
+                        <svg
+                          viewBox='0 0 2 2'
+                          className='h-0.5 w-0.5 flex-none fill-gray-300'
+                        >
+                          <circle cx={1} cy={1} r={1} />
+                        </svg>
+                        <p className='whitespace-nowrap'>
+                          {timeAgo(question.timestamp)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className='rounded-full flex-none py-1 px-2 text-xs font-medium ring-1 ring-inset text-white'>
+                      {question.category}
+                    </div>
+                    {/* <ChevronRightIcon
                     className='h-5 w-5 flex-none text-gray-400'
                     aria-hidden='true'
                   /> */}
-                </li>
-              ))}
+                  </li>
+                ))}
             </ul>
           </main>
 

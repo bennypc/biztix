@@ -57,7 +57,7 @@ export default function Home() {
         <div className='sm:mx-auto sm:w-full sm:max-w-sm'>
           <img className='mx-auto h-36 w-auto' src='/biztechlogo.png' />
           <h2 className='mt-2 text-center text-2xl font-bold leading-9 tracking-tight text-white'>
-            Sign in BizTickets!
+            Sign in BizTix!
           </h2>
         </div>
 
