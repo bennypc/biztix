@@ -432,7 +432,25 @@ export default function ParticipantDashboard() {
             {/* Questions list */}
             <ul role='list' className='divide-y divide-white/5'>
               {questions
-                .sort((a, b) => b.timestamp.seconds - a.timestamp.seconds)
+                .sort((a, b) => {
+                  // Handle cases where timestamp is null or undefined for a or b
+                  if (!a.timestamp && !b.timestamp) return 0; // If both are missing timestamps, they are equal.
+                  if (!a.timestamp) return 1; // If only a is missing a timestamp, put it last.
+                  if (!b.timestamp) return -1; // If only b is missing a timestamp, put it first.
+
+                  // If either timestamp is "just now", handle the special case
+                  if (timeAgo(a.timestamp) === 'just now') return -1;
+                  if (timeAgo(b.timestamp) === 'just now') return 1;
+
+                  // If either question is "completed", handle that case
+                  if (a.status === 'completed' && b.status !== 'completed')
+                    return 1;
+                  if (b.status === 'completed' && a.status !== 'completed')
+                    return -1;
+
+                  // If both are active or both are pending, sort based on timestamp
+                  return b.timestamp.seconds - a.timestamp.seconds;
+                })
                 .map((question) => (
                   <li
                     key={question.id}

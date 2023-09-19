@@ -83,6 +83,42 @@ export default function OrganizerDashboard() {
   const [question, setQuestion] = useState('');
   const [category, setCategory] = useState('Front-end');
   const [description, setDescription] = useState('');
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const userCollection = collection(db, 'users');
+        const userSnapshot = await getDocs(userCollection);
+        const usersData = userSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setUsers(usersData);
+      } catch (error) {
+        console.error('Error fetching users: ', error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [mentorsCount, setMentorsCount] = useState(0);
+  const [organizersCount, setOrganizersCount] = useState(0);
+  const [participantsCount, setParticipantsCount] = useState(0);
+
+  useEffect(() => {
+    setTotalUsers(users.length);
+    setMentorsCount(users.filter((user) => user.role === 'mentor').length);
+    setOrganizersCount(
+      users.filter((user) => user.role === 'organizer').length
+    );
+    setParticipantsCount(
+      users.filter((user) => user.role === 'participant').length
+    );
+  }, [users]);
+
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'tickets'), (snapshot) => {
       const fetchedQuestions = snapshot.docs.map((doc) => ({
@@ -134,6 +170,10 @@ export default function OrganizerDashboard() {
         <p className='text-white'>You don't have access to this page.</p>
       </div>
     );
+  }
+
+  function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
   }
 
   async function handleStatusChange(questionId) {
@@ -397,18 +437,18 @@ export default function OrganizerDashboard() {
           <main className='lg:pr-96'>
             <header className='flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8'>
               <h1 className='text-base font-semibold leading-7 text-white'>
-                Questions
+                Users
               </h1>
 
               {/* Sort dropdown */}
               <Menu as='div' className='relative'>
-                <Menu.Button className='flex items-center gap-x-1 text-sm font-medium leading-6 text-white'>
-                  Sort by
-                  <ChevronUpDownIcon
-                    className='h-5 w-5 text-gray-500'
-                    aria-hidden='true'
-                  />
-                </Menu.Button>
+                <button
+                  type='button'
+                  className='rounded-md bg-green-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                >
+                  Add User
+                </button>
+
                 <Transition
                   as={Fragment}
                   enter='transition ease-out duration-100'
@@ -465,90 +505,55 @@ export default function OrganizerDashboard() {
 
             {/* Questions list */}
             <ul role='list' className='divide-y divide-white/5'>
-              {questions
-                .sort((a, b) => {
-                  // If a is "completed" and b is not, put a after b
-                  if (
-                    a.status === 'completed' &&
-                    (b.status === 'active' || b.status === 'pending')
-                  ) {
-                    return 1;
-                  }
-
-                  // If b is "completed" and a is not, put b after a
-                  if (
-                    b.status === 'completed' &&
-                    (a.status === 'active' || a.status === 'pending')
-                  ) {
-                    return -1;
-                  }
-
-                  // If both questions have the same status or both are either "active" or "pending", sort by timestamp
-                  return b.timestamp.seconds - a.timestamp.seconds;
-                })
-                .map((question) => (
-                  <li
-                    key={question.id}
-                    className='relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8'
-                  >
-                    <div className='min-w-0 flex-auto'>
-                      <div className='flex items-center gap-x-3'>
-                        <div
-                          className={classNames(
-                            statuses[question.status],
-                            'flex-none rounded-full p-1'
-                          )}
-                        >
-                          <div className='h-2 w-2 rounded-full bg-current' />
-                        </div>
-                        <h2 className='min-w-0 text-sm font-semibold leading-6 text-white'>
-                          <a href={question.href} className='flex gap-x-2'>
-                            <span className='truncate'>
-                              {question.teamName}
-                            </span>
+              {users.map((user) => (
+                <li
+                  key={user.code}
+                  className='relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8'
+                >
+                  <div className='min-w-0 flex-auto'>
+                    <div className='flex items-center gap-x-3'>
+                      <h2 className='min-w-0 text-sm font-semibold leading-6 text-white'>
+                        <a href={question.href} className='flex gap-x-2'>
+                          <span className='truncate'>
+                            {user.firstName} {user.lastName}
+                          </span>
+                          {user.teamName && (
                             <span className='text-gray-400'>/</span>
-                            <span className='whitespace-nowrap'>
-                              {question.question}
-                            </span>
-                          </a>
-                        </h2>
-                      </div>
-                      <div className='mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
-                        <p className='truncate'>{question.description}</p>
-                        <svg
-                          viewBox='0 0 2 2'
-                          className='h-0.5 w-0.5 flex-none fill-gray-300'
-                        >
-                          <circle cx={1} cy={1} r={1} />
-                        </svg>
-                        <p className='whitespace-nowrap'>
-                          {timeAgo(question.timestamp)}
-                        </p>
-                      </div>
+                          )}
+                          <span className='whitespace-nowrap'>
+                            {user.teamName && <span>{user.teamName}</span>}
+                          </span>
+                        </a>
+                      </h2>
                     </div>
-                    <div className='rounded-full flex-none py-1 px-2 text-xs font-medium ring-1 ring-inset text-white'>
-                      {question.category}
+                    <div className='mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
+                      <p className='truncate'>
+                        {capitalizeFirstLetter(user.role)}
+                      </p>{' '}
+                      <svg
+                        viewBox='0 0 2 2'
+                        className='h-0.5 w-0.5 flex-none fill-gray-300'
+                      >
+                        <circle cx={1} cy={1} r={1} />
+                      </svg>
+                      <p className='whitespace-nowrap'>{user.code}</p>
                     </div>
-                    {question.status === 'active' && (
-                      <button
-                        type='button'
-                        onClick={() => handleStatusChange(question.id)}
-                        className='rounded-md bg-blue-800 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                      >
-                        Claim Question
-                      </button>
-                    )}
-                    {question.status === 'pending' && (
-                      <button
-                        type='button'
-                        onClick={() => handleStatusChange(question.id)}
-                        className='rounded-md bg-green-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                      >
-                        Solved
-                      </button>
-                    )}
-                  </li>
-                ))}
+                  </div>
+                  <button
+                    type='button'
+                    className='rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                  >
+                    Edit User
+                  </button>
+
+                  <button
+                    type='button'
+                    className='rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                  >
+                    Delete User
+                  </button>
+                </li>
+              ))}
             </ul>
           </main>
 
@@ -559,8 +564,8 @@ export default function OrganizerDashboard() {
                 Hello Hacks! Questions
               </h2>
             </header>
-            <div className='mx-8'>
-              <p className='text-white mt-4'>
+            <div className='mx-8 border-b border-white/5 pb-4  sm:py-6'>
+              <p className='text-white mt-2 '>
                 <strong>Total questions: </strong>
                 {questions.length}
               </p>
@@ -598,8 +603,23 @@ export default function OrganizerDashboard() {
                   <span>{count}</span>
                 </div>
               ))}
-
-              {/* You can replace this with a graphic representation using a library like D3.js or Chart.js for a more visual representation of category distribution. */}
+            </div>
+            <div className='mt-6 mx-8'>
+              {' '}
+              <div className='text-white mt-4'>
+                <h2 className='mt-2'>
+                  <strong>Total Users:</strong> {totalUsers}
+                </h2>
+                <h2 className='mt-2'>
+                  <strong>Mentors:</strong> {mentorsCount}
+                </h2>
+                <h2 className='mt-2'>
+                  <strong>Organizers:</strong> {organizersCount}
+                </h2>
+                <h2 className='mt-2'>
+                  <strong>Participants:</strong> {participantsCount}
+                </h2>
+              </div>
             </div>
           </aside>
         </div>
