@@ -38,7 +38,11 @@ import {
   updateDoc,
   deleteDoc,
   arrayRemove,
-  arrayUnion
+  arrayUnion,
+  writeBatch,
+  FieldValue,
+  deleteField,
+  getDoc
 } from 'firebase/firestore';
 var randomstring = require('randomstring');
 
@@ -98,18 +102,39 @@ export default function OrganizerDashboard() {
   const [editModalCode, setEditModalCode] = useState('');
   const cancelButtonRef = useRef(null);
 
+  const [editModalTeamName, setEditModalTeamName] = useState('');
+  const [editModalTeamMembers, setEditModalTeamMembers] = useState([]);
+
+  const [currentEditingTeamId, setCurrentEditingTeamId] = useState(null);
+
+  const addMemberToModal = (userId) => {
+    const userToAdd = users.find((user) => user.id === userId);
+    if (
+      userToAdd &&
+      !editModalTeamMembers.some((member) => member.id === userId)
+    ) {
+      setEditModalTeamMembers([...editModalTeamMembers, userToAdd]);
+    }
+  };
+
+  const removeMemberFromModal = (userId) => {
+    setEditModalTeamMembers(
+      editModalTeamMembers.filter((member) => member.id !== userId)
+    );
+  };
+
   const navigation = [
     {
       name: 'Users',
       href: '/organizer-dashboard/users',
       icon: UserIcon,
-      current: true
+      current: false
     },
     {
       name: 'Teams',
       href: '/organizer-dashboard/teams',
       icon: UserGroupIcon,
-      current: false
+      current: true
     },
     {
       name: 'Tickets',
@@ -229,9 +254,9 @@ export default function OrganizerDashboard() {
     }
   }
   async function createUser() {
+    console.log(team);
     const userCode = generateCode(8);
     let userData;
-
     if (role === 'participant') {
       userData = {
         firstName: firstName,
@@ -250,32 +275,7 @@ export default function OrganizerDashboard() {
     }
 
     try {
-      // Add the user to the 'users' collection
       await addDoc(collection(db, 'users'), userData);
-
-      // If the user is a participant, also update the team
-      if (role === 'participant' && team) {
-        const teamQuery = query(
-          collection(db, 'teams'),
-          where('teamName', '==', team)
-        );
-
-        const teamSnapshot = await getDocs(teamQuery);
-
-        if (!teamSnapshot.empty) {
-          const teamDoc = teamSnapshot.docs[0];
-
-          await updateDoc(teamDoc.ref, {
-            teamMembers: arrayUnion({
-              firstName: firstName,
-              lastName: lastName,
-              code: userCode
-            })
-          });
-        } else {
-          console.error('No team found with name:', team);
-        }
-      }
 
       setFirstName('');
       setLastName('');
@@ -306,6 +306,99 @@ export default function OrganizerDashboard() {
       console.error('Error deleting user:', error);
     }
   }
+
+  async function deleteTeam(teamId, teamName) {
+    // First, remove the team from all its members
+    const usersWithTeamRef = collection(db, 'users');
+    const q = query(usersWithTeamRef, where('teamName', '==', teamName));
+
+    try {
+      const usersSnapshot = await getDocs(q);
+      const batch = writeBatch(db);
+
+      usersSnapshot.forEach((userDoc) => {
+        // For each user in the team, remove the team name
+        const userRef = doc(db, 'users', userDoc.id);
+        batch.update(userRef, { teamName: deleteField() });
+      });
+
+      // Commit the batch write to update all members at once
+      await batch.commit();
+
+      // Now, delete the team itself
+      const teamRef = doc(db, 'teams', teamId);
+      await deleteDoc(teamRef);
+
+      // Refresh the teams list after deleting
+      fetchTeams();
+    } catch (error) {
+      console.error('Error deleting team and updating its members:', error);
+    }
+  }
+
+  const updateTeam = async () => {
+    if (!currentEditingTeamId) {
+      console.error('No team is currently being edited.');
+      return;
+    }
+
+    try {
+      // Get the current team from Firebase to check members before edit
+      const teamRef = doc(db, 'teams', currentEditingTeamId);
+      const currentTeamSnap = await getDoc(teamRef);
+      const currentTeamMembers = currentTeamSnap.data().teamMembers || [];
+
+      // Update the team document in Firebase
+      await updateDoc(teamRef, {
+        teamName: editModalTeamName,
+        teamMembers: editModalTeamMembers
+      });
+
+      // Update each member's user document in Firebase
+      for (const member of editModalTeamMembers) {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('code', '==', member.code));
+
+        const userSnapshot = await getDocs(q);
+        if (!userSnapshot.empty) {
+          const userDoc = userSnapshot.docs[0];
+          await updateDoc(userDoc.ref, { teamName: editModalTeamName });
+        } else {
+          console.error(`No user found with code: ${member.code}`);
+        }
+      }
+
+      // Check for removed members and update their user documents
+      const removedMembers = currentTeamMembers.filter(
+        (member) =>
+          !editModalTeamMembers.some(
+            (editMember) => editMember.code === member.code
+          )
+      );
+
+      for (const member of removedMembers) {
+        const usersRef = collection(db, 'users');
+        const q = query(usersRef, where('code', '==', member.code));
+
+        const userSnapshot = await getDocs(q);
+        if (!userSnapshot.empty) {
+          const userDoc = userSnapshot.docs[0];
+          await updateDoc(userDoc.ref, { teamName: '' }); // or null, depending on how you want to handle no team
+        } else {
+          console.error(`No user found with code: ${member.code}`);
+        }
+      }
+
+      setEditModalOpen(false);
+      fetchTeams(); // and maybe also fetchUsers() if you have such a function
+    } catch (error) {
+      console.error('Error updating team:', error);
+    }
+  };
+
+  const editTeam = async (teamId) => {
+    setEditModalOpen(true);
+  };
 
   async function submitQuestion() {
     const questionID = randomstring.generate(10);
@@ -699,131 +792,55 @@ export default function OrganizerDashboard() {
           <main className='lg:pr-96'>
             <header className='flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8'>
               <h1 className='text-base font-semibold leading-7 text-white'>
-                Users
+                Teams
               </h1>
-
-              {/* Sort dropdown */}
-              <Menu as='div' className='relative'>
-                <button
-                  type='button'
-                  className='rounded-md mr-4 bg-green-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                  onClick={() => setOpenCreateUserModal(true)}
-                >
-                  Add User
-                </button>
-
-                <button
-                  type='button'
-                  className='rounded-md bg-green-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                  onClick={() => setOpenCreateTeamModal(true)}
-                >
-                  Create Team
-                </button>
-
-                <Transition
-                  as={Fragment}
-                  enter='transition ease-out duration-100'
-                  enterFrom='transform opacity-0 scale-95'
-                  enterTo='transform opacity-100 scale-100'
-                  leave='transition ease-in duration-75'
-                  leaveFrom='transform opacity-100 scale-100'
-                  leaveTo='transform opacity-0 scale-95'
-                >
-                  <Menu.Items className='absolute right-0 z-10 mt-2.5 w-40 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none'>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href='#'
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Name
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href='#'
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Date updated
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href='#'
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Environment
-                        </a>
-                      )}
-                    </Menu.Item>
-                  </Menu.Items>
-                </Transition>
-              </Menu>
+              <button
+                type='button'
+                className='rounded-md bg-green-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                onClick={() => setOpenCreateTeamModal(true)}
+              >
+                Add Team
+              </button>
             </header>
 
-            {/* Users list */}
+            {/* Teams list */}
             <ul role='list' className='divide-y divide-white/5'>
-              {users.map((user) => (
+              {teams.map((team) => (
                 <li
-                  key={user.code}
+                  key={team.id}
                   className='relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8'
                 >
                   <div className='min-w-0 flex-auto'>
-                    <div className='flex items-center gap-x-3'>
-                      <h2 className='min-w-0 text-sm font-semibold leading-6 text-white'>
-                        <a href={question.href} className='flex gap-x-2'>
-                          <span className='truncate'>
-                            {user.firstName} {user.lastName}
-                          </span>
-                          {user.teamName && (
-                            <span className='text-gray-400'>/</span>
-                          )}
-                          <span className='whitespace-nowrap'>
-                            {user.teamName && <span>{user.teamName}</span>}
-                          </span>
-                        </a>
-                      </h2>
-                    </div>
+                    <h2 className='text-sm font-semibold leading-6 text-white'>
+                      <span className='truncate'>{team.teamName}</span>
+                    </h2>
                     <div className='mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
-                      <p className='truncate'>
-                        {capitalizeFirstLetter(user.role)}
-                      </p>{' '}
-                      <svg
-                        viewBox='0 0 2 2'
-                        className='h-0.5 w-0.5 flex-none fill-gray-300'
-                      >
-                        <circle cx={1} cy={1} r={1} />
-                      </svg>
-                      <p className='whitespace-nowrap'>{user.code}</p>
+                      {team.teamMembers.map((member) => (
+                        <p className='truncate' key={member.code}>
+                          {member.firstName} {member.lastName} ({member.code})
+                        </p>
+                      ))}
                     </div>
                   </div>
                   <button
                     type='button'
-                    onClick={() => handleEditModalOpen(user)}
+                    onClick={() => {
+                      setEditModalTeamName(team.teamName);
+                      setEditModalTeamMembers(team.teamMembers || []);
+                      setCurrentEditingTeamId(team.id);
+                      setEditModalOpen(true);
+                    }}
                     className='rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
                   >
-                    Edit User
+                    Edit Team
                   </button>
 
                   <button
                     type='button'
-                    onClick={() => deleteUser(user.code)}
+                    onClick={() => deleteTeam(team.id, team.teamName)}
                     className='rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
                   >
-                    Delete User
+                    Delete Team
                   </button>
                 </li>
               ))}
@@ -1145,89 +1162,87 @@ export default function OrganizerDashboard() {
                           as='h3'
                           className='text-base font-semibold leading-6 text-gray-900'
                         >
-                          Edit user
+                          Edit Team
                         </Dialog.Title>
                       </div>
                     </div>
 
-                    {/* First Name */}
+                    {/* Team Name */}
                     <div className='mt-4 mb-2 mx-4'>
                       <label className='block text-sm font-medium leading-6 text-gray-900'>
-                        First Name
+                        Team Name
                       </label>
                       <div className='mt-2'>
                         <input
                           className='px-3 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
-                          value={editModalFirstName}
-                          onChange={(e) =>
-                            setEditModalFirstName(e.target.value)
-                          }
+                          value={editModalTeamName}
+                          onChange={(e) => setEditModalTeamName(e.target.value)}
                         />
                       </div>
                     </div>
 
-                    {/* Last Name */}
+                    {/* Current Team Members */}
                     <div className='mt-4 mb-2 mx-4'>
                       <label className='block text-sm font-medium leading-6 text-gray-900'>
-                        Last Name
+                        Current Team Members
                       </label>
                       <div className='mt-2'>
-                        <input
-                          className='px-3 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
-                          value={editModalLastName}
-                          onChange={(e) => setEditModalLastName(e.target.value)}
-                        />
+                        <ul>
+                          {editModalTeamMembers.map((member) => (
+                            <li
+                              key={member.id}
+                              className='flex justify-between items-center mb-2'
+                            >
+                              <span>
+                                {member.firstName} {member.lastName}
+                              </span>
+                              <button
+                                onClick={() => removeMemberFromModal(member.id)}
+                                className='rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                              >
+                                Remove
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
 
-                    {/* Role */}
+                    {/* Add Team Members */}
                     <div className='mt-4 mb-2 mx-4'>
                       <label className='block text-sm font-medium leading-6 text-gray-900'>
-                        Role
+                        Add Team Members
                       </label>
                       <div className='mt-2'>
                         <select
                           className='px-3 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
-                          value={editModalRole}
-                          onChange={(e) => setEditModalRole(e.target.value)}
+                          onChange={(e) => addMemberToModal(e.target.value)}
                         >
-                          <option value='participant'>Participant</option>
-                          <option value='mentor'>Mentor</option>
-                          <option value='organizer'>Organizer</option>
+                          <option value=''>Select Participant</option>
+                          {users
+                            .filter((user) => user.role === 'participant')
+                            .filter(
+                              (user) =>
+                                !editModalTeamMembers.some(
+                                  (member) => member.id === user.id
+                                )
+                            )
+                            .map((user) => (
+                              <option key={user.id} value={user.id}>
+                                {user.firstName} {user.lastName}
+                              </option>
+                            ))}
                         </select>
                       </div>
                     </div>
-
-                    {/* Teams Dropdown (visible only if participant role is selected) */}
-                    {editModalRole === 'participant' && (
-                      <div className='mt-4 mb-2 mx-4'>
-                        <label className='block text-sm font-medium leading-6 text-gray-900'>
-                          Team
-                        </label>
-                        <div className='mt-2'>
-                          <select
-                            className='px-3 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
-                            value={editModalTeam}
-                            onChange={(e) => setEditModalTeam(e.target.value)}
-                          >
-                            <option value=''>Select Team</option>
-                            {teams.map((t) => (
-                              <option key={t.id} value={t.teamName}>
-                                {t.teamName}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                    )}
                   </div>
                   <div className='bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6'>
                     <button
                       type='button'
                       className='inline-flex w-full justify-center rounded-md bg-blue-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:ml-3 sm:w-auto'
-                      onClick={updateUser}
+                      onClick={updateTeam}
                     >
-                      Update User
+                      Update Team
                     </button>
                     <button
                       type='button'

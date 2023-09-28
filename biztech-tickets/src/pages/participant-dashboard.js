@@ -6,6 +6,7 @@ import { useState, Fragment, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext.js'; // Ensure this path points to the correct location
 import { Dialog, Menu, Transition } from '@headlessui/react';
 import {
+  ArrowRightOnRectangleIcon,
   ChartBarSquareIcon,
   Cog6ToothIcon,
   FolderIcon,
@@ -36,19 +37,6 @@ var randomstring = require('randomstring');
 
 const db = getFirestore(app);
 
-const navigation = [
-  { name: 'Tickets', href: '#', icon: FolderIcon, current: true },
-  { name: 'Settings', href: '#', icon: Cog6ToothIcon, current: false }
-];
-const teams = [
-  {
-    id: 1,
-    name: 'BizTeching BizTechers',
-    href: '#',
-    initial: 'P',
-    current: false
-  }
-];
 const statuses = {
   pending: 'text-yellow-500 bg-yellow-100/10',
   completed: 'text-green-400 bg-green-400/10',
@@ -72,8 +60,26 @@ function timeAgo(timestamp) {
   return `${Math.floor(secondsAgo / 86400)} days ago`;
 }
 
+function generateTeamInitial(teamName) {
+  if (!teamName) return '';
+
+  const words = teamName.split(' ');
+
+  if (words.length === 1) {
+    return teamName.substring(0, 2).toUpperCase();
+  }
+
+  // Handle "Team X" format
+  if (words[0].toLowerCase() === 'team' && words[1]) {
+    return `${words[0][0]}${words[1][0]}`.toUpperCase();
+  }
+
+  // Use the first letters of the first two words
+  return `${words[0][0]}${words[1][0]}`.toUpperCase();
+}
+
 export default function ParticipantDashboard() {
-  const { user } = useUser();
+  const { user, loading, setUser } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [questions, setQuestions] = useState([]);
   const router = useRouter();
@@ -81,6 +87,24 @@ export default function ParticipantDashboard() {
   const [question, setQuestion] = useState('');
   const [category, setCategory] = useState('Front-end');
   const [description, setDescription] = useState('');
+
+  const navigation = [
+    { name: 'Tickets', href: '#', icon: FolderIcon, current: true },
+    { name: 'Settings', href: '#', icon: Cog6ToothIcon, current: false },
+    {
+      name: 'Sign Out',
+      onClick: signOut,
+      icon: ArrowRightOnRectangleIcon,
+      current: false
+    }
+  ];
+
+  function signOut() {
+    localStorage.removeItem('user');
+    setUser(null);
+    router.push('/');
+  }
+
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'tickets'), (snapshot) => {
       const fetchedQuestions = snapshot.docs.map((doc) => ({
@@ -121,10 +145,13 @@ export default function ParticipantDashboard() {
   }
 
   useEffect(() => {
-    if (!user || !user.firstName || !user.lastName) {
-      router.push('/'); // Redirect to root if user is not logged in
+    if (!loading) {
+      if (!user) {
+        console.log('No user found. Redirecting to /');
+        router.push('/');
+      }
     }
-  }, [user, router]);
+  }, [loading, user, router]);
 
   return (
     <div className='bg-[#070f21] min-h-screen'>
@@ -195,21 +222,39 @@ export default function ParticipantDashboard() {
                           <ul role='list' className='-mx-2 space-y-1'>
                             {navigation.map((item) => (
                               <li key={item.name}>
-                                <a
-                                  href={item.href}
-                                  className={classNames(
-                                    item.current
-                                      ? 'bg-gray-800 text-white'
-                                      : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                                    'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                  )}
-                                >
-                                  <item.icon
-                                    className='h-6 w-6 shrink-0'
-                                    aria-hidden='true'
-                                  />
-                                  {item.name}
-                                </a>
+                                {item.href ? (
+                                  <a
+                                    href={item.href}
+                                    className={classNames(
+                                      item.current
+                                        ? 'bg-gray-800 text-white'
+                                        : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                      'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                    )}
+                                  >
+                                    <item.icon
+                                      className='h-6 w-6 shrink-0'
+                                      aria-hidden='true'
+                                    />
+                                    {item.name}
+                                  </a>
+                                ) : (
+                                  <button
+                                    onClick={item.onClick}
+                                    className={classNames(
+                                      item.current
+                                        ? 'bg-gray-800 text-white'
+                                        : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                                      'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                                    )}
+                                  >
+                                    <item.icon
+                                      className='h-6 w-6 shrink-0'
+                                      aria-hidden='true'
+                                    />
+                                    {item.name}
+                                  </button>
+                                )}
                               </li>
                             ))}
                           </ul>
@@ -218,26 +263,19 @@ export default function ParticipantDashboard() {
                           <div className='text-xs font-semibold leading-6 text-gray-400'>
                             Your team
                           </div>
-                          <ul role='list' className='-mx-2 mt-2 space-y-1'>
-                            {teams.map((team) => (
-                              <li key={team.name}>
-                                <a
-                                  href={team.href}
-                                  className={classNames(
-                                    team.current
-                                      ? 'bg-gray-800 text-white'
-                                      : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                                    'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                  )}
-                                >
-                                  <span className='flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white'>
-                                    {team.initial}
-                                  </span>
-                                  <span className='truncate'>{team.name}</span>
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
+
+                          <div>
+                            <a className='bg-gray-800 text-white group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'>
+                              <span className='flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white'>
+                                {user
+                                  ? generateTeamInitial(user.teamName)
+                                  : 'XX'}
+                              </span>
+                              <span className='truncate'>
+                                {user ? `${user.teamName}` : 'Loading...'}
+                              </span>
+                            </a>
+                          </div>
                         </li>
                         <li className='-mx-6 mt-auto'>
                           <a
@@ -278,21 +316,39 @@ export default function ParticipantDashboard() {
                   <ul role='list' className='-mx-2 space-y-1'>
                     {navigation.map((item) => (
                       <li key={item.name}>
-                        <a
-                          href={item.href}
-                          className={classNames(
-                            item.current
-                              ? 'bg-gray-800 text-white'
-                              : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                          )}
-                        >
-                          <item.icon
-                            className='h-6 w-6 shrink-0'
-                            aria-hidden='true'
-                          />
-                          {item.name}
-                        </a>
+                        {item.href ? (
+                          <a
+                            href={item.href}
+                            className={classNames(
+                              item.current
+                                ? 'bg-gray-800 text-white'
+                                : 'text-gray-400 hover:text-white hover:bg-gray-800',
+                              'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                            )}
+                          >
+                            <item.icon
+                              className='h-6 w-6 shrink-0'
+                              aria-hidden='true'
+                            />
+                            {item.name}
+                          </a>
+                        ) : (
+                          <div // using div here since it looks like you want a similar style to the anchor
+                            onClick={item.onClick}
+                            className={classNames(
+                              item.current
+                                ? 'bg-gray-800 text-white cursor-pointer'
+                                : 'text-gray-400 hover:text-white hover:bg-gray-800 cursor-pointer',
+                              'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
+                            )}
+                          >
+                            <item.icon
+                              className='h-6 w-6 shrink-0'
+                              aria-hidden='true'
+                            />
+                            {item.name}
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -302,24 +358,16 @@ export default function ParticipantDashboard() {
                     Your team
                   </div>
                   <ul role='list' className='-mx-2 mt-2 space-y-1'>
-                    {teams.map((team) => (
-                      <li key={team.name}>
-                        <a
-                          href={team.href}
-                          className={classNames(
-                            team.current
-                              ? 'bg-gray-800 text-white'
-                              : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                          )}
-                        >
-                          <span className='flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white'>
-                            {team.initial}
-                          </span>
-                          <span className='truncate'>{team.name}</span>
-                        </a>
-                      </li>
-                    ))}
+                    <div>
+                      <a className='bg-gray-800 text-white group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'>
+                        <span className='flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white'>
+                          {user ? generateTeamInitial(user.teamName) : 'XX'}
+                        </span>
+                        <span className='truncate'>
+                          {user ? `${user.teamName}` : 'Loading...'}
+                        </span>
+                      </a>
+                    </div>
                   </ul>
                 </li>
                 <li className='-mx-6 mt-auto'>
@@ -430,7 +478,10 @@ export default function ParticipantDashboard() {
             </header>
 
             {/* Questions list */}
-            <ul role='list' className='divide-y divide-white/5'>
+            <ul
+              role='list'
+              className='divide-y divide-white/5 max-h-[20rem] overflow-y-auto lg:max-h-full'
+            >
               {questions
                 .sort((a, b) => {
                   // Handle cases where timestamp is null or undefined for a or b
@@ -449,7 +500,7 @@ export default function ParticipantDashboard() {
                     return -1;
 
                   // If both are active or both are pending, sort based on timestamp
-                  return b.timestamp.seconds - a.timestamp.seconds;
+                  return a.timestamp.seconds - b.timestamp.seconds;
                 })
                 .map((question) => (
                   <li
@@ -468,11 +519,11 @@ export default function ParticipantDashboard() {
                         </div>
                         <h2 className='min-w-0 text-sm font-semibold leading-6 text-white'>
                           <a href={question.href} className='flex gap-x-2'>
-                            <span className='truncate'>
+                            <span className='whitespace-nowrap'>
                               {question.teamName}
                             </span>
                             <span className='text-gray-400'>/</span>
-                            <span className='whitespace-nowrap'>
+                            <span className='whitespace-nowrap truncate'>
                               {question.question}
                             </span>
                             <span className='absolute inset-0' />
@@ -561,7 +612,7 @@ export default function ParticipantDashboard() {
                     htmlFor='comment'
                     className='block text-sm font-medium leading-6 text-white'
                   >
-                    Description
+                    Location
                   </label>
                   <div className='mt-2 '>
                     <textarea
@@ -571,7 +622,7 @@ export default function ParticipantDashboard() {
                       name='comment'
                       id='comment'
                       className='px-3 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6'
-                      placeholder="I'm trying to merge my incredible code but it's not working properly"
+                      placeholder='Leftmost table of CPA Hall'
                     />
                   </div>
                 </div>
