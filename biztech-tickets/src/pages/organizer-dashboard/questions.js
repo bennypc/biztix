@@ -4,7 +4,7 @@ import styles from '@/styles/Home.module.css';
 import { useRouter } from 'next/router';
 import { useState, Fragment, useEffect } from 'react';
 import { useUser } from '../../contexts/UserContext.js'; // Ensure this path points to the correct location
-import { Dialog, Menu, Transition } from '@headlessui/react';
+import { Dialog, Menu, Transition, Disclosure } from '@headlessui/react';
 import {
   ArrowRightOnRectangleIcon,
   ChartBarSquareIcon,
@@ -13,6 +13,7 @@ import {
   GlobeAltIcon,
   ServerIcon,
   SignalIcon,
+  UserGroupIcon,
   UserIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
@@ -20,10 +21,11 @@ import {
   Bars3Icon,
   ChevronRightIcon,
   ChevronUpDownIcon,
+  FunnelIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/20/solid';
 
-import { app } from '../../../firebaseConfig.js';
+import { app } from '../../../firebaseConfig';
 import {
   collection,
   getDocs,
@@ -34,7 +36,8 @@ import {
   serverTimestamp,
   onSnapshot,
   doc,
-  updateDoc
+  updateDoc,
+  deleteDoc
 } from 'firebase/firestore';
 var randomstring = require('randomstring');
 
@@ -72,18 +75,17 @@ function timeAgo(timestamp) {
   return `${Math.floor(secondsAgo / 86400)} days ago`;
 }
 
-export default function OrganizerDashboard() {
-  const router = useRouter();
-
+export default function OrganizerQuestions() {
   const { user, loading, setUser } = useUser();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [questions, setQuestions] = useState([]);
+  const router = useRouter();
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState([]);
 
   const [question, setQuestion] = useState('');
   const [category, setCategory] = useState('Front-end');
   const [description, setDescription] = useState('');
-  const [users, setUsers] = useState([]);
-
   const navigation = [
     {
       name: 'Users',
@@ -92,12 +94,18 @@ export default function OrganizerDashboard() {
       current: false
     },
     {
-      name: 'Tickets',
+      name: 'Teams',
+      href: '/organizer-dashboard/teams',
+      icon: UserGroupIcon,
+      current: false
+    },
+    {
+      name: 'Questions',
       href: '/organizer-dashboard/questions',
       icon: FolderIcon,
       current: true
     },
-    { name: 'Settings', href: '#', icon: Cog6ToothIcon, current: false },
+
     {
       name: 'Sign Out',
       onClick: signOut,
@@ -111,40 +119,6 @@ export default function OrganizerDashboard() {
     setUser(null);
     router.push('/');
   }
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const userCollection = collection(db, 'users');
-        const userSnapshot = await getDocs(userCollection);
-        const usersData = userSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setUsers(usersData);
-      } catch (error) {
-        console.error('Error fetching users: ', error);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [mentorsCount, setMentorsCount] = useState(0);
-  const [organizersCount, setOrganizersCount] = useState(0);
-  const [participantsCount, setParticipantsCount] = useState(0);
-
-  useEffect(() => {
-    setTotalUsers(users.length);
-    setMentorsCount(users.filter((user) => user.role === 'mentor').length);
-    setOrganizersCount(
-      users.filter((user) => user.role === 'organizer').length
-    );
-    setParticipantsCount(
-      users.filter((user) => user.role === 'participant').length
-    );
-  }, [users]);
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'tickets'), (snapshot) => {
@@ -202,32 +176,54 @@ export default function OrganizerDashboard() {
     );
   }
 
-  function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+  const filteredQuestions = questions.filter((question) => {
+    if (
+      statusFilter.length > 0 &&
+      !statusFilter.includes(question.status.toLowerCase())
+    )
+      return false;
+    if (
+      categoryFilter.length > 0 &&
+      !categoryFilter.includes(question.category)
+    )
+      return false;
+    return true;
+  });
+
+  async function handleDeleteQuestion(questionId) {
+    const questionRef = doc(db, 'tickets', questionId);
+    try {
+      await deleteDoc(questionRef);
+    } catch (error) {
+      console.error('Error deleting question: ', error);
+    }
   }
 
   async function handleStatusChange(questionId) {
-    // Identify which question to update based on its ID
     const questionRef = doc(db, 'tickets', questionId);
 
-    // Fetch the current status of the question from your state or Firestore
     const currentStatus = questions.find((q) => q.id === questionId).status;
 
     let updatedStatus;
+    let updatePayload = {};
 
     if (currentStatus === 'active') {
       updatedStatus = 'pending';
+      updatePayload = {
+        status: updatedStatus,
+        claimedBy: user.code
+      };
     } else if (currentStatus === 'pending') {
       updatedStatus = 'completed';
+      updatePayload = {
+        status: updatedStatus,
+        claimedBy: null // Setting claimedBy to null when the question is solved
+      };
     } else {
-      // If the current status is "completed", no further actions are needed.
       return;
     }
 
-    // Update the status in Firestore
-    await updateDoc(questionRef, {
-      status: updatedStatus
-    });
+    await updateDoc(questionRef, updatePayload);
   }
 
   return (
@@ -336,31 +332,7 @@ export default function OrganizerDashboard() {
                             ))}
                           </ul>
                         </li>
-                        <li>
-                          <div className='text-xs font-semibold leading-6 text-gray-400'>
-                            Your team
-                          </div>
-                          <ul role='list' className='-mx-2 mt-2 space-y-1'>
-                            {teams.map((team) => (
-                              <li key={team.name}>
-                                <a
-                                  href={team.href}
-                                  className={classNames(
-                                    team.current
-                                      ? 'bg-gray-800 text-white'
-                                      : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                                    'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                                  )}
-                                >
-                                  <span className='flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white'>
-                                    {team.initial}
-                                  </span>
-                                  <span className='truncate'>{team.name}</span>
-                                </a>
-                              </li>
-                            ))}
-                          </ul>
-                        </li>
+
                         <li className='-mx-6 mt-auto'>
                           <a
                             href='#'
@@ -437,31 +409,7 @@ export default function OrganizerDashboard() {
                     ))}
                   </ul>
                 </li>
-                <li>
-                  <div className='text-xs font-semibold leading-6 text-gray-400'>
-                    Your team
-                  </div>
-                  <ul role='list' className='-mx-2 mt-2 space-y-1'>
-                    {teams.map((team) => (
-                      <li key={team.name}>
-                        <a
-                          href={team.href}
-                          className={classNames(
-                            team.current
-                              ? 'bg-gray-800 text-white'
-                              : 'text-gray-400 hover:text-white hover:bg-gray-800',
-                            'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-                          )}
-                        >
-                          <span className='flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border border-gray-700 bg-gray-800 text-[0.625rem] font-medium text-gray-400 group-hover:text-white'>
-                            {team.initial}
-                          </span>
-                          <span className='truncate'>{team.name}</span>
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </li>
+
                 <li className='-mx-6 mt-auto'>
                   <a
                     href='#'
@@ -501,137 +449,224 @@ export default function OrganizerDashboard() {
           </div>
 
           <main className='lg:pr-96'>
-            <header className='flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8'>
-              <h1 className='text-base font-semibold leading-7 text-white'>
-                Users
-              </h1>
+            <div className=''>
+              <Disclosure as='section' aria-labelledby='filter-heading'>
+                <h2 id='filter-heading' className='sr-only'>
+                  Filters
+                </h2>
+                <div className='flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6 sm:py-6 lg:px-8'>
+                  <h1 className='text-base font-semibold leading-7 text-gray-200'>
+                    Questions
+                  </h1>
+                  <div className='flex items-center gap-x-3'>
+                    <Disclosure.Button className='group flex items-center font-medium text-gray-200 group-hover:text-gray-500'>
+                      <FunnelIcon
+                        className='mr-2 h-5 w-5 flex-none text-gray-200 group-hover:text-gray-500'
+                        aria-hidden='true'
+                      />
+                      Filters
+                    </Disclosure.Button>
+                    <button
+                      type='button'
+                      className='text-gray-500'
+                      onClick={() => {
+                        setStatusFilter([]);
+                        setCategoryFilter([]);
+                      }}
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                </div>
+                <Disclosure.Panel className='border-t border-gray-800 py-10 bg-[#152241]'>
+                  <div className='mx-auto grid max-w-7xl grid-cols-2 gap-x-4 px-4 text-sm sm:px-6 md:gap-x-6 lg:px-8'>
+                    {/* Status filter */}
+                    <fieldset>
+                      <legend className='block font-medium text-white'>
+                        Status
+                      </legend>
+                      <div className='space-y-6 pt-6 sm:space-y-4 sm:pt-4 '>
+                        {['Active', 'Pending', 'Completed'].map(
+                          (status, idx) => (
+                            <div
+                              key={status}
+                              className='flex items-center text-base sm:text-sm'
+                            >
+                              <input
+                                id={`status-${idx}`}
+                                name='status[]'
+                                defaultValue={status}
+                                type='checkbox'
+                                className='h-4 w-4 flex-shrink-0 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+                                checked={statusFilter.includes(
+                                  status.toLowerCase()
+                                )}
+                                onChange={() => {
+                                  const formattedStatus = status.toLowerCase();
+                                  if (statusFilter.includes(formattedStatus)) {
+                                    setStatusFilter((prev) =>
+                                      prev.filter((s) => s !== formattedStatus)
+                                    );
+                                  } else {
+                                    setStatusFilter((prev) => [
+                                      ...prev,
+                                      formattedStatus
+                                    ]);
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`status-${idx}`}
+                                className='ml-3 min-w-0 flex-1 text-gray-400'
+                              >
+                                {status}
+                              </label>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </fieldset>
 
-              {/* Sort dropdown */}
-              <Menu as='div' className='relative'>
-                <button
-                  type='button'
-                  className='rounded-md bg-green-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                >
-                  Add User
-                </button>
-
-                <Transition
-                  as={Fragment}
-                  enter='transition ease-out duration-100'
-                  enterFrom='transform opacity-0 scale-95'
-                  enterTo='transform opacity-100 scale-100'
-                  leave='transition ease-in duration-75'
-                  leaveFrom='transform opacity-100 scale-100'
-                  leaveTo='transform opacity-0 scale-95'
-                >
-                  <Menu.Items className='absolute right-0 z-10 mt-2.5 w-40 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none'>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href='#'
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Name
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href='#'
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Date updated
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href='#'
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Environment
-                        </a>
-                      )}
-                    </Menu.Item>
-                  </Menu.Items>
-                </Transition>
-              </Menu>
-            </header>
+                    {/* Category filter */}
+                    <fieldset>
+                      <legend className='block font-medium text-white'>
+                        Category
+                      </legend>
+                      <div className='grid md:grid-cols-2 grid-cols-1 gap-4 pt-6 sm:pt-4'>
+                        {[
+                          'APIs',
+                          'Databases & Storage',
+                          'Back-end',
+                          'Front-end',
+                          'Pitching',
+                          'UI/UX',
+                          'Other',
+                          'Ideation'
+                        ].map((category, idx) => (
+                          <div
+                            key={category}
+                            className='flex items-center text-base sm:text-sm'
+                          >
+                            <input
+                              id={`category-${idx}`}
+                              name='category[]'
+                              defaultValue={category}
+                              type='checkbox'
+                              className='h-4 w-4 flex-shrink-0 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+                              checked={categoryFilter.includes(category)}
+                              onChange={() => {
+                                if (categoryFilter.includes(category)) {
+                                  setCategoryFilter((prev) =>
+                                    prev.filter((c) => c !== category)
+                                  );
+                                } else {
+                                  setCategoryFilter((prev) => [
+                                    ...prev,
+                                    category
+                                  ]);
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor={`category-${idx}`}
+                              className='ml-3 min-w-0 flex-1 text-gray-400'
+                            >
+                              {category}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </fieldset>
+                  </div>
+                </Disclosure.Panel>
+              </Disclosure>
+            </div>
 
             {/* Questions list */}
-            <ul role='list' className='divide-y divide-white/5'>
-              {users.map((user) => (
-                <li
-                  key={user.code}
-                  className='relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8'
-                >
-                  <div className='min-w-0 flex-auto'>
-                    <div className='flex items-center gap-x-3'>
-                      <h2 className='min-w-0 text-sm font-semibold leading-6 text-white'>
-                        <a href={question.href} className='flex gap-x-2'>
-                          <span className='truncate'>
-                            {user.firstName} {user.lastName}
-                          </span>
-                          {user.teamName && (
-                            <span className='text-gray-400'>/</span>
-                          )}
-                          <span className='whitespace-nowrap'>
-                            {user.teamName && <span>{user.teamName}</span>}
-                          </span>
-                        </a>
-                      </h2>
-                    </div>
-                    <div className='mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
-                      <p className='truncate'>
-                        {capitalizeFirstLetter(user.role)}
-                      </p>{' '}
-                      <svg
-                        viewBox='0 0 2 2'
-                        className='h-0.5 w-0.5 flex-none fill-gray-300'
+            <ul
+              role='list'
+              className='divide-y divide-white/5 max-h-[35rem] overflow-y-auto lg:max-h-full px-2 md:px-0'
+            >
+              {filteredQuestions
+                .sort((a, b) => {
+                  if (
+                    a.status === 'completed' &&
+                    (b.status === 'active' || b.status === 'pending')
+                  )
+                    return 1;
+                  if (
+                    b.status === 'completed' &&
+                    (a.status === 'active' || a.status === 'pending')
+                  )
+                    return -1;
+                  return a.timestamp.seconds - b.timestamp.seconds;
+                })
+                .map((question) => (
+                  <li
+                    key={question.id}
+                    className='relative flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4 px-2 py-3 sm:px-4 lg:px-6'
+                  >
+                    <div className='md:flex-grow flex items-center md:items-start gap-x-2 gap-y-1'>
+                      <div
+                        className={classNames(
+                          statuses[question.status],
+                          'flex-none rounded-full p-1'
+                        )}
                       >
-                        <circle cx={1} cy={1} r={1} />
-                      </svg>
-                      <p className='whitespace-nowrap'>{user.code}</p>
-                    </div>
-                  </div>
-                  <button
-                    type='button'
-                    className='rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                  >
-                    Edit User
-                  </button>
+                        <div className='h-2 w-2 rounded-full bg-current' />
+                      </div>
+                      <div className='flex-grow'>
+                        <h2 className='text-sm font-semibold leading-6 text-white'>
+                          <a href={question.href} className='flex gap-x-2'>
+                            <span className='whitespace-nowrap'>
+                              {question.teamName}
+                            </span>
+                            <span className='text-gray-400'>/</span>
+                            <span className='flex-grow whitespace-nowrap truncate md:max-w-[350px] max-w-[160px]'>
+                              {question.question}
+                            </span>
+                          </a>
+                        </h2>
 
-                  <button
-                    type='button'
-                    className='rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                  >
-                    Delete User
-                  </button>
-                </li>
-              ))}
+                        <div className='mt-1 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
+                          <p className='truncate'>{question.description}</p>
+                          <svg
+                            viewBox='0 0 2 2'
+                            className='h-0.5 w-0.5 flex-none fill-gray-300'
+                          >
+                            <circle cx={1} cy={1} r={1} />
+                          </svg>
+                          <p className='whitespace-nowrap'>
+                            {timeAgo(question.timestamp)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className='rounded-full py-1 px-2 text-xs font-medium ring-1 ring-inset text-white mb-2 md:mb-0'>
+                        {question.category}
+                      </div>
+                    </div>
+
+                    <button
+                      type='button'
+                      onClick={() => handleDeleteQuestion(question.id)}
+                      className='w-full md:w-auto mt-4 md:mt-0 rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                    >
+                      Delete Question
+                    </button>
+                  </li>
+                ))}
             </ul>
           </main>
 
-          {/* Submit a question */}
+          {/* List of questions */}
           <aside className='bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5'>
             <header className='flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8'>
               <h2 className='text-base font-semibold leading-7 text-white'>
                 Hello Hacks! Questions
               </h2>
             </header>
-            <div className='mx-8 border-b border-white/5 pb-4  sm:py-6'>
-              <p className='text-white mt-2 '>
+            <div className='mx-8'>
+              <p className='text-white mt-4'>
                 <strong>Total questions: </strong>
                 {questions.length}
               </p>
@@ -669,23 +704,8 @@ export default function OrganizerDashboard() {
                   <span>{count}</span>
                 </div>
               ))}
-            </div>
-            <div className='mt-6 mx-8'>
-              {' '}
-              <div className='text-white mt-4'>
-                <h2 className='mt-2'>
-                  <strong>Total Users:</strong> {totalUsers}
-                </h2>
-                <h2 className='mt-2'>
-                  <strong>Mentors:</strong> {mentorsCount}
-                </h2>
-                <h2 className='mt-2'>
-                  <strong>Organizers:</strong> {organizersCount}
-                </h2>
-                <h2 className='mt-2'>
-                  <strong>Participants:</strong> {participantsCount}
-                </h2>
-              </div>
+
+              {/* You can replace this with a graphic representation using a library like D3.js or Chart.js for a more visual representation of category distribution. */}
             </div>
           </aside>
         </div>

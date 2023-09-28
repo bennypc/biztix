@@ -143,7 +143,6 @@ export default function OrganizerDashboard() {
       current: false
     },
 
-    { name: 'Settings', href: '#', icon: Cog6ToothIcon, current: false },
     {
       name: 'Sign Out',
       onClick: signOut,
@@ -808,13 +807,13 @@ export default function OrganizerDashboard() {
               {teams.map((team) => (
                 <li
                   key={team.id}
-                  className='relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8'
+                  className='relative flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 px-4 py-4 sm:px-6 lg:px-8'
                 >
                   <div className='min-w-0 flex-auto'>
                     <h2 className='text-sm font-semibold leading-6 text-white'>
                       <span className='truncate'>{team.teamName}</span>
                     </h2>
-                    <div className='mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
+                    <div className='mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs leading-5 text-gray-400'>
                       {team.teamMembers.map((member) => (
                         <p className='truncate' key={member.code}>
                           {member.firstName} {member.lastName} ({member.code})
@@ -822,26 +821,28 @@ export default function OrganizerDashboard() {
                       ))}
                     </div>
                   </div>
-                  <button
-                    type='button'
-                    onClick={() => {
-                      setEditModalTeamName(team.teamName);
-                      setEditModalTeamMembers(team.teamMembers || []);
-                      setCurrentEditingTeamId(team.id);
-                      setEditModalOpen(true);
-                    }}
-                    className='rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                  >
-                    Edit Team
-                  </button>
+                  <div className='flex flex-col w-full sm:flex-row sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2'>
+                    <button
+                      type='button'
+                      onClick={() => {
+                        setEditModalTeamName(team.teamName);
+                        setEditModalTeamMembers(team.teamMembers || []);
+                        setCurrentEditingTeamId(team.id);
+                        setEditModalOpen(true);
+                      }}
+                      className='w-full sm:w-auto rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                    >
+                      Edit Team
+                    </button>
 
-                  <button
-                    type='button'
-                    onClick={() => deleteTeam(team.id, team.teamName)}
-                    className='rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                  >
-                    Delete Team
-                  </button>
+                    <button
+                      type='button'
+                      onClick={() => deleteTeam(team.id, team.teamName)}
+                      className='w-full sm:w-auto rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                    >
+                      Delete Team
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>

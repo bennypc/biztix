@@ -90,7 +90,7 @@ export default function ParticipantDashboard() {
 
   const navigation = [
     { name: 'Tickets', href: '#', icon: FolderIcon, current: true },
-    { name: 'Settings', href: '#', icon: Cog6ToothIcon, current: false },
+
     {
       name: 'Sign Out',
       onClick: signOut,
@@ -517,16 +517,20 @@ export default function ParticipantDashboard() {
                         >
                           <div className='h-2 w-2 rounded-full bg-current' />
                         </div>
-                        <h2 className='min-w-0 text-sm font-semibold leading-6 text-white'>
-                          <a href={question.href} className='flex gap-x-2'>
-                            <span className='whitespace-nowrap'>
+                        <h2 className='text-sm font-semibold leading-6 text-white truncate'>
+                          <a
+                            href={question.href}
+                            className='flex gap-x-2 items-center'
+                          >
+                            <span className='whitespace-nowrap flex-shrink-0'>
                               {question.teamName}
                             </span>
-                            <span className='text-gray-400'>/</span>
-                            <span className='whitespace-nowrap truncate'>
+                            <span className='text-gray-400 flex-shrink-0'>
+                              /
+                            </span>
+                            <span className='whitespace-nowrap truncate flex-grow'>
                               {question.question}
                             </span>
-                            <span className='absolute inset-0' />
                           </a>
                         </h2>
                       </div>
@@ -598,7 +602,7 @@ export default function ParticipantDashboard() {
                   >
                     <option>Front-end</option>
                     <option>Back-end</option>
-                    <option>Databases & Storage</option>
+                    <option>Databases</option>
                     <option>APIs</option>
                     <option>UI/UX</option>
                     <option>Ideation</option>

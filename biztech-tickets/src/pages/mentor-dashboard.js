@@ -4,7 +4,7 @@ import styles from '@/styles/Home.module.css';
 import { useRouter } from 'next/router';
 import { useState, Fragment, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext.js'; // Ensure this path points to the correct location
-import { Dialog, Menu, Transition } from '@headlessui/react';
+import { Dialog, Menu, Transition, Disclosure } from '@headlessui/react';
 import {
   ArrowRightOnRectangleIcon,
   ChartBarSquareIcon,
@@ -19,6 +19,7 @@ import {
   Bars3Icon,
   ChevronRightIcon,
   ChevronUpDownIcon,
+  FunnelIcon,
   MagnifyingGlassIcon
 } from '@heroicons/react/20/solid';
 
@@ -76,13 +77,15 @@ export default function MentorDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [questions, setQuestions] = useState([]);
   const router = useRouter();
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [categoryFilter, setCategoryFilter] = useState([]);
 
   const [question, setQuestion] = useState('');
   const [category, setCategory] = useState('Front-end');
   const [description, setDescription] = useState('');
   const navigation = [
     { name: 'Tickets', href: '#', icon: FolderIcon, current: true },
-    { name: 'Settings', href: '#', icon: Cog6ToothIcon, current: false },
+
     {
       name: 'Sign Out',
       onClick: signOut,
@@ -153,28 +156,45 @@ export default function MentorDashboard() {
     );
   }
 
+  const filteredQuestions = questions.filter((question) => {
+    if (
+      statusFilter.length > 0 &&
+      !statusFilter.includes(question.status.toLowerCase())
+    )
+      return false;
+    if (
+      categoryFilter.length > 0 &&
+      !categoryFilter.includes(question.category)
+    )
+      return false;
+    return true;
+  });
+
   async function handleStatusChange(questionId) {
-    // Identify which question to update based on its ID
     const questionRef = doc(db, 'tickets', questionId);
 
-    // Fetch the current status of the question from your state or Firestore
     const currentStatus = questions.find((q) => q.id === questionId).status;
 
     let updatedStatus;
+    let updatePayload = {};
 
     if (currentStatus === 'active') {
       updatedStatus = 'pending';
+      updatePayload = {
+        status: updatedStatus,
+        claimedBy: user.code
+      };
     } else if (currentStatus === 'pending') {
       updatedStatus = 'completed';
+      updatePayload = {
+        status: updatedStatus,
+        claimedBy: null // Setting claimedBy to null when the question is solved
+      };
     } else {
-      // If the current status is "completed", no further actions are needed.
       return;
     }
 
-    // Update the status in Firestore
-    await updateDoc(questionRef, {
-      status: updatedStatus
-    });
+    await updateDoc(questionRef, updatePayload);
   }
 
   return (
@@ -400,80 +420,145 @@ export default function MentorDashboard() {
           </div>
 
           <main className='lg:pr-96'>
-            <header className='flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8'>
-              <h1 className='text-base font-semibold leading-7 text-white'>
-                Questions
-              </h1>
+            <div className=''>
+              <Disclosure as='section' aria-labelledby='filter-heading'>
+                <h2 id='filter-heading' className='sr-only'>
+                  Filters
+                </h2>
+                <div className='flex items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6 sm:py-6 lg:px-8'>
+                  <h1 className='text-base font-semibold leading-7 text-gray-200'>
+                    Questions
+                  </h1>
+                  <div className='flex items-center gap-x-3'>
+                    <Disclosure.Button className='group flex items-center font-medium text-gray-200 group-hover:text-gray-500'>
+                      <FunnelIcon
+                        className='mr-2 h-5 w-5 flex-none text-gray-200 group-hover:text-gray-500'
+                        aria-hidden='true'
+                      />
+                      Filters
+                    </Disclosure.Button>
+                    <button
+                      type='button'
+                      className='text-gray-500'
+                      onClick={() => {
+                        setStatusFilter([]);
+                        setCategoryFilter([]);
+                      }}
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                </div>
+                <Disclosure.Panel className='border-t border-gray-800 py-10 bg-[#152241]'>
+                  <div className='mx-auto grid max-w-7xl grid-cols-2 gap-x-4 px-4 text-sm sm:px-6 md:gap-x-6 lg:px-8'>
+                    {/* Status filter */}
+                    <fieldset>
+                      <legend className='block font-medium text-white'>
+                        Status
+                      </legend>
+                      <div className='space-y-6 pt-6 sm:space-y-4 sm:pt-4 '>
+                        {['Active', 'Pending', 'Completed'].map(
+                          (status, idx) => (
+                            <div
+                              key={status}
+                              className='flex items-center text-base sm:text-sm'
+                            >
+                              <input
+                                id={`status-${idx}`}
+                                name='status[]'
+                                defaultValue={status}
+                                type='checkbox'
+                                className='h-4 w-4 flex-shrink-0 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+                                checked={statusFilter.includes(
+                                  status.toLowerCase()
+                                )}
+                                onChange={() => {
+                                  const formattedStatus = status.toLowerCase();
+                                  if (statusFilter.includes(formattedStatus)) {
+                                    setStatusFilter((prev) =>
+                                      prev.filter((s) => s !== formattedStatus)
+                                    );
+                                  } else {
+                                    setStatusFilter((prev) => [
+                                      ...prev,
+                                      formattedStatus
+                                    ]);
+                                  }
+                                }}
+                              />
+                              <label
+                                htmlFor={`status-${idx}`}
+                                className='ml-3 min-w-0 flex-1 text-gray-400'
+                              >
+                                {status}
+                              </label>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </fieldset>
 
-              {/* Sort dropdown */}
-              <Menu as='div' className='relative'>
-                <Menu.Button className='flex items-center gap-x-1 text-sm font-medium leading-6 text-white'>
-                  Sort by
-                  <ChevronUpDownIcon
-                    className='h-5 w-5 text-gray-500'
-                    aria-hidden='true'
-                  />
-                </Menu.Button>
-                <Transition
-                  as={Fragment}
-                  enter='transition ease-out duration-100'
-                  enterFrom='transform opacity-0 scale-95'
-                  enterTo='transform opacity-100 scale-100'
-                  leave='transition ease-in duration-75'
-                  leaveFrom='transform opacity-100 scale-100'
-                  leaveTo='transform opacity-0 scale-95'
-                >
-                  <Menu.Items className='absolute right-0 z-10 mt-2.5 w-40 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 focus:outline-none'>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href='#'
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Name
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href='#'
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Date updated
-                        </a>
-                      )}
-                    </Menu.Item>
-                    <Menu.Item>
-                      {({ active }) => (
-                        <a
-                          href='#'
-                          className={classNames(
-                            active ? 'bg-gray-50' : '',
-                            'block px-3 py-1 text-sm leading-6 text-gray-900'
-                          )}
-                        >
-                          Environment
-                        </a>
-                      )}
-                    </Menu.Item>
-                  </Menu.Items>
-                </Transition>
-              </Menu>
-            </header>
+                    {/* Category filter */}
+                    <fieldset>
+                      <legend className='block font-medium text-white'>
+                        Category
+                      </legend>
+                      <div className='grid md:grid-cols-2 grid-cols-1 gap-4 pt-6 sm:pt-4'>
+                        {[
+                          'APIs',
+                          'Databases & Storage',
+                          'Back-end',
+                          'Front-end',
+                          'Pitching',
+                          'UI/UX',
+                          'Other',
+                          'Ideation'
+                        ].map((category, idx) => (
+                          <div
+                            key={category}
+                            className='flex items-center text-base sm:text-sm'
+                          >
+                            <input
+                              id={`category-${idx}`}
+                              name='category[]'
+                              defaultValue={category}
+                              type='checkbox'
+                              className='h-4 w-4 flex-shrink-0 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500'
+                              checked={categoryFilter.includes(category)}
+                              onChange={() => {
+                                if (categoryFilter.includes(category)) {
+                                  setCategoryFilter((prev) =>
+                                    prev.filter((c) => c !== category)
+                                  );
+                                } else {
+                                  setCategoryFilter((prev) => [
+                                    ...prev,
+                                    category
+                                  ]);
+                                }
+                              }}
+                            />
+                            <label
+                              htmlFor={`category-${idx}`}
+                              className='ml-3 min-w-0 flex-1 text-gray-400'
+                            >
+                              {category}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </fieldset>
+                  </div>
+                </Disclosure.Panel>
+              </Disclosure>
+            </div>
 
             {/* Questions list */}
             <ul
               role='list'
               className='divide-y divide-white/5 max-h-[35rem] overflow-y-auto lg:max-h-full px-2 md:px-0'
             >
-              {questions
+              {filteredQuestions
                 .sort((a, b) => {
                   if (
                     a.status === 'completed' &&
@@ -501,14 +586,19 @@ export default function MentorDashboard() {
                       >
                         <div className='h-2 w-2 rounded-full bg-current' />
                       </div>
-                      <div>
-                        <h2 className='text-sm font-semibold leading-6 text-white truncate'>
+                      <div className='flex-grow'>
+                        <h2 className='text-sm font-semibold leading-6 text-white'>
                           <a href={question.href} className='flex gap-x-2'>
-                            {question.teamName}
+                            <span className='whitespace-nowrap'>
+                              {question.teamName}
+                            </span>
                             <span className='text-gray-400'>/</span>
-                            {question.question}
+                            <span className='flex-grow whitespace-nowrap truncate md:max-w-[350px] max-w-[160px]'>
+                              {question.question}
+                            </span>
                           </a>
                         </h2>
+
                         <div className='mt-1 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
                           <p className='truncate'>{question.description}</p>
                           <svg
@@ -536,15 +626,16 @@ export default function MentorDashboard() {
                         Claim Question
                       </button>
                     )}
-                    {question.status === 'pending' && (
-                      <button
-                        type='button'
-                        onClick={() => handleStatusChange(question.id)}
-                        className='w-full md:w-auto mt-4 md:mt-0 rounded-md bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                      >
-                        Click to solve
-                      </button>
-                    )}
+                    {question.status === 'pending' &&
+                      question.claimedBy === user.code && (
+                        <button
+                          type='button'
+                          onClick={() => handleStatusChange(question.id)}
+                          className='w-full md:w-auto mt-4 md:mt-0 rounded-md bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                        >
+                          Click to solve
+                        </button>
+                      )}
                   </li>
                 ))}
             </ul>

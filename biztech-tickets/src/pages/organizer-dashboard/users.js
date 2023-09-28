@@ -118,7 +118,6 @@ export default function OrganizerDashboard() {
       current: false
     },
 
-    { name: 'Settings', href: '#', icon: Cog6ToothIcon, current: false },
     {
       name: 'Sign Out',
       onClick: signOut,
@@ -779,7 +778,7 @@ export default function OrganizerDashboard() {
               {users.map((user) => (
                 <li
                   key={user.code}
-                  className='relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8'
+                  className='relative flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-x-4 px-4 py-4 sm:px-6 lg:px-8'
                 >
                   <div className='min-w-0 flex-auto'>
                     <div className='flex items-center gap-x-3'>
@@ -810,21 +809,23 @@ export default function OrganizerDashboard() {
                       <p className='whitespace-nowrap'>{user.code}</p>
                     </div>
                   </div>
-                  <button
-                    type='button'
-                    onClick={() => handleEditModalOpen(user)}
-                    className='rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                  >
-                    Edit User
-                  </button>
+                  <div className='flex flex-col w-full sm:flex-row sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2'>
+                    <button
+                      type='button'
+                      onClick={() => handleEditModalOpen(user)}
+                      className='w-full sm:w-auto rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                    >
+                      Edit User
+                    </button>
 
-                  <button
-                    type='button'
-                    onClick={() => deleteUser(user.code)}
-                    className='rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                  >
-                    Delete User
-                  </button>
+                    <button
+                      type='button'
+                      onClick={() => deleteUser(user.code)}
+                      className='w-full sm:w-auto rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                    >
+                      Delete User
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
