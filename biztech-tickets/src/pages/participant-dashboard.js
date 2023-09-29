@@ -483,6 +483,7 @@ export default function ParticipantDashboard() {
               className='divide-y divide-white/5 max-h-[20rem] overflow-y-auto lg:max-h-full'
             >
               {questions
+                .filter((question) => question.teamName === user.teamName)
                 .sort((a, b) => {
                   // Handle cases where timestamp is null or undefined for a or b
                   if (!a.timestamp && !b.timestamp) return 0; // If both are missing timestamps, they are equal.
