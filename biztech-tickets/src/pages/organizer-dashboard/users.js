@@ -1085,11 +1085,15 @@ export default function OrganizerDashboard() {
                               <option value='' selected>
                                 Select Team
                               </option>
-                              {teams.map((t) => (
-                                <option key={t.id} value={t.teamName}>
-                                  {t.teamName}
-                                </option>
-                              ))}
+                              {teams
+                                .sort((a, b) =>
+                                  a.teamName.localeCompare(b.teamName)
+                                )
+                                .map((t) => (
+                                  <option key={t.id} value={t.teamName}>
+                                    {t.teamName}
+                                  </option>
+                                ))}
                             </select>
                           </div>
                         </div>
@@ -1212,11 +1216,15 @@ export default function OrganizerDashboard() {
                             onChange={(e) => setEditModalTeam(e.target.value)}
                           >
                             <option value=''>Select Team</option>
-                            {teams.map((t) => (
-                              <option key={t.id} value={t.teamName}>
-                                {t.teamName}
-                              </option>
-                            ))}
+                            {teams
+                              .sort((a, b) =>
+                                a.teamName.localeCompare(b.teamName)
+                              )
+                              .map((t) => (
+                                <option key={t.id} value={t.teamName}>
+                                  {t.teamName}
+                                </option>
+                              ))}
                           </select>
                         </div>
                       </div>
