@@ -82,7 +82,7 @@ export default function OrganizerDashboard() {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [role, setRole] = useState('mentor');
+  const [role, setRole] = useState('organizer');
   const [team, setTeam] = useState('Select Team');
 
   const [teamName, setTeamName] = useState('');
@@ -705,7 +705,7 @@ export default function OrganizerDashboard() {
               <Menu as='div' className='relative'>
                 <button
                   type='button'
-                  className='rounded-md mr-4 bg-green-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                  className='rounded-md mr-4 bg-[#402dad] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
                   onClick={() => setOpenCreateUserModal(true)}
                 >
                   Add User
@@ -713,7 +713,7 @@ export default function OrganizerDashboard() {
 
                 <button
                   type='button'
-                  className='rounded-md bg-green-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                  className='rounded-md bg-[#402dad] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
                   onClick={() => setOpenCreateTeamModal(true)}
                 >
                   Create Team
