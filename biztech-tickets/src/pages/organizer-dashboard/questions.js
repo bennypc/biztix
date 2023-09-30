@@ -336,13 +336,13 @@ export default function OrganizerQuestions() {
                         <li className='-mx-6 mt-auto'>
                           <a
                             href='#'
-                            className='flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800'
+                            className='flex items-center gap-x-4 px-6 py-4 text-sm font-semibold leading-6 text-white hover:bg-gray-800'
                           >
-                            <img
+                            {/* <img
                               className='h-8 w-8 rounded-full bg-gray-800'
                               src='https://media.licdn.com/dms/image/D5603AQFviDjG26DlRQ/profile-displayphoto-shrink_800_800/0/1689219654699?e=1700697600&v=beta&t=tZG3pJalB9vELrtZiepeP7CbR8Q829LDzYxWP3Qvx7M'
                               alt=''
-                            />
+                            /> */}
                             <span className='sr-only'>Your profile</span>
                             <span aria-hidden='true'>
                               {user
@@ -413,13 +413,13 @@ export default function OrganizerQuestions() {
                 <li className='-mx-6 mt-auto'>
                   <a
                     href='#'
-                    className='flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-white hover:bg-gray-800'
+                    className='flex items-center gap-x-4 px-6 py-4 text-sm font-semibold leading-6 text-white hover:bg-gray-800'
                   >
-                    <img
+                    {/* <img
                       className='h-8 w-8 rounded-full bg-gray-800'
                       src='https://media.licdn.com/dms/image/D5603AQFviDjG26DlRQ/profile-displayphoto-shrink_400_400/0/1689219654699?e=1700697600&v=beta&t=_-LRIlZ6Q_DUqLTa9MZC8uJ3YdmIFX2fS1JFNSuwwPQ'
                       alt=''
-                    />
+                    /> */}
                     <span className='sr-only'>Your profile</span>
                     <span aria-hidden='true'>
                       {user
@@ -665,7 +665,7 @@ export default function OrganizerQuestions() {
                 Hello Hacks! Questions
               </h2>
             </header>
-            <div className='mx-8'>
+            <div className='mx-8 pb-6'>
               <p className='text-white mt-4'>
                 <strong>Total questions: </strong>
                 {questions.length}
