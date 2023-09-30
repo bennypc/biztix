@@ -647,7 +647,7 @@ export default function OrganizerQuestions() {
                               {question.teamName}
                             </span>
                             <span className='text-gray-400'>/</span>
-                            <span className='flex-grow whitespace-nowrap truncate md:max-w-[350px] max-w-[160px]'>
+                            <span className='flex-grow whitespace-nowrap truncate md:max-w-[350px] max-w-[130px]'>
                               {question.question}
                             </span>
                           </a>
