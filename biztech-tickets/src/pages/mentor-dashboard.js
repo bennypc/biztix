@@ -616,7 +616,7 @@ export default function MentorDashboard() {
                               {question.teamName}
                             </span>
                             <span className='text-gray-400'>/</span>
-                            <span className='flex-grow whitespace-wrap md:max-w-[400px] max-w-[130px]'>
+                            <span className='flex-grow whitespace-wrap md:max-w-[400px] max-w-[170px]'>
                               {question.question}
                             </span>
                           </a>
