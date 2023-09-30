@@ -1086,9 +1086,24 @@ export default function OrganizerDashboard() {
                                 Select Team
                               </option>
                               {teams
-                                .sort((a, b) =>
-                                  a.teamName.localeCompare(b.teamName)
-                                )
+                                .sort((a, b) => {
+                                  const numA = parseInt(
+                                    a.teamName.replace(/[^0-9]/g, '')
+                                  );
+                                  const numB = parseInt(
+                                    b.teamName.replace(/[^0-9]/g, '')
+                                  );
+
+                                  if (!isNaN(numA) && !isNaN(numB)) {
+                                    return numA - numB; // Sort numerically if both are numbers
+                                  } else if (!isNaN(numA)) {
+                                    return -1; // If only 'a' is a number, it comes first
+                                  } else if (!isNaN(numB)) {
+                                    return 1; // If only 'b' is a number, it comes first
+                                  }
+
+                                  return a.teamName.localeCompare(b.teamName); // Fallback to lexicographical ordering
+                                })
                                 .map((t) => (
                                   <option key={t.id} value={t.teamName}>
                                     {t.teamName}
@@ -1217,9 +1232,24 @@ export default function OrganizerDashboard() {
                           >
                             <option value=''>Select Team</option>
                             {teams
-                              .sort((a, b) =>
-                                a.teamName.localeCompare(b.teamName)
-                              )
+                              .sort((a, b) => {
+                                const numA = parseInt(
+                                  a.teamName.replace(/[^0-9]/g, '')
+                                );
+                                const numB = parseInt(
+                                  b.teamName.replace(/[^0-9]/g, '')
+                                );
+
+                                if (!isNaN(numA) && !isNaN(numB)) {
+                                  return numA - numB; // Sort numerically if both are numbers
+                                } else if (!isNaN(numA)) {
+                                  return -1; // If only 'a' is a number, it comes first
+                                } else if (!isNaN(numB)) {
+                                  return 1; // If only 'b' is a number, it comes first
+                                }
+
+                                return a.teamName.localeCompare(b.teamName); // Fallback to lexicographical ordering
+                              })
                               .map((t) => (
                                 <option key={t.id} value={t.teamName}>
                                   {t.teamName}
