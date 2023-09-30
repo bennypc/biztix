@@ -804,47 +804,62 @@ export default function OrganizerDashboard() {
 
             {/* Teams list */}
             <ul role='list' className='divide-y divide-white/5'>
-              {teams.map((team) => (
-                <li
-                  key={team.id}
-                  className='relative flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 px-4 py-4 sm:px-6 lg:px-8'
-                >
-                  <div className='min-w-0 flex-auto'>
-                    <h2 className='text-sm font-semibold leading-6 text-white'>
-                      <span className='truncate'>{team.teamName}</span>
-                    </h2>
-                    <div className='mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs leading-5 text-gray-400'>
-                      {team.teamMembers.map((member) => (
-                        <p className='truncate' key={member.code}>
-                          {member.firstName} {member.lastName} ({member.code})
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                  <div className='flex flex-col w-full sm:flex-row sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2'>
-                    <button
-                      type='button'
-                      onClick={() => {
-                        setEditModalTeamName(team.teamName);
-                        setEditModalTeamMembers(team.teamMembers || []);
-                        setCurrentEditingTeamId(team.id);
-                        setEditModalOpen(true);
-                      }}
-                      className='w-full sm:w-auto rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                    >
-                      Edit Team
-                    </button>
+              {teams
+                .sort((a, b) => {
+                  const numA = parseInt(a.teamName.replace(/[^0-9]/g, ''));
+                  const numB = parseInt(b.teamName.replace(/[^0-9]/g, ''));
 
-                    <button
-                      type='button'
-                      onClick={() => deleteTeam(team.id, team.teamName)}
-                      className='w-full sm:w-auto rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
-                    >
-                      Delete Team
-                    </button>
-                  </div>
-                </li>
-              ))}
+                  if (!isNaN(numA) && !isNaN(numB)) {
+                    return numA - numB; // Sort numerically if both are numbers
+                  } else if (!isNaN(numA)) {
+                    return -1; // If only 'a' is a number, it comes first
+                  } else if (!isNaN(numB)) {
+                    return 1; // If only 'b' is a number, it comes first
+                  }
+
+                  return a.teamName.localeCompare(b.teamName); // Fallback to lexicographical ordering
+                })
+                .map((team) => (
+                  <li
+                    key={team.id}
+                    className='relative flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4 px-4 py-4 sm:px-6 lg:px-8'
+                  >
+                    <div className='min-w-0 flex-auto'>
+                      <h2 className='text-sm font-semibold leading-6 text-white'>
+                        <span className='truncate'>{team.teamName}</span>
+                      </h2>
+                      <div className='mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs leading-5 text-gray-400'>
+                        {team.teamMembers.map((member) => (
+                          <p className='truncate' key={member.code}>
+                            {member.firstName} {member.lastName} ({member.code})
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                    <div className='flex flex-col w-full sm:flex-row sm:w-auto space-y-2 sm:space-y-0 sm:space-x-2'>
+                      <button
+                        type='button'
+                        onClick={() => {
+                          setEditModalTeamName(team.teamName);
+                          setEditModalTeamMembers(team.teamMembers || []);
+                          setCurrentEditingTeamId(team.id);
+                          setEditModalOpen(true);
+                        }}
+                        className='w-full sm:w-auto rounded-md bg-yellow-300 px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                      >
+                        Edit Team
+                      </button>
+
+                      <button
+                        type='button'
+                        onClick={() => deleteTeam(team.id, team.teamName)}
+                        className='w-full sm:w-auto rounded-md bg-red-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                      >
+                        Delete Team
+                      </button>
+                    </div>
+                  </li>
+                ))}
             </ul>
           </main>
 
