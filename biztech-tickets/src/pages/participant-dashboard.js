@@ -117,6 +117,28 @@ export default function ParticipantDashboard() {
     // Cleanup listener on component unmount
     return () => unsubscribe();
   }, []);
+
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      const usersCollection = collection(db, 'users');
+      const usersSnapshot = await getDocs(usersCollection);
+      const usersList = usersSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setUsers(usersList);
+    };
+
+    fetchUsers();
+  }, []);
+
+  function findUserNameById(id) {
+    const user = users.find((user) => user.code === id);
+    return user ? user.firstName + ' ' + user.lastName : null;
+  }
+
   async function submitQuestion() {
     const questionID = randomstring.generate(10);
     const fullName = `${user.firstName} ${user.lastName}`;
@@ -535,17 +557,30 @@ export default function ParticipantDashboard() {
                           </a>
                         </h2>
                       </div>
-                      <div className='mt-3 flex items-center gap-x-2.5 text-xs leading-5 text-gray-400'>
-                        <p className='truncate'>{question.description}</p>
-                        <svg
-                          viewBox='0 0 2 2'
-                          className='h-0.5 w-0.5 flex-none fill-gray-300'
-                        >
-                          <circle cx={1} cy={1} r={1} />
-                        </svg>
-                        <p className='whitespace-nowrap'>
-                          {timeAgo(question.timestamp)}
-                        </p>
+                      <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
+                        <div className='flex items-center gap-x-2.5'>
+                          <p className='truncate'>{question.description}</p>
+                          <svg
+                            viewBox='0 0 2 2'
+                            className='h-0.5 w-0.5 flex-none fill-gray-300'
+                          >
+                            <circle cx={1} cy={1} r={1} />
+                          </svg>
+                          <p className='whitespace-nowrap'>
+                            {timeAgo(question.timestamp)}
+                          </p>
+                        </div>
+
+                        {question.claimedBy && !question.solvedBy && (
+                          <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-indigo-500'>
+                            Claimed by {findUserNameById(question.claimedBy)}
+                          </p>
+                        )}
+                        {question.solvedBy && (
+                          <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-green-500'>
+                            Solved by {findUserNameById(question.solvedBy)}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className='rounded-full flex-none py-1 px-2 text-xs font-medium ring-1 ring-inset text-white'>
