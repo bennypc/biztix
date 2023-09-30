@@ -188,7 +188,8 @@ export default function MentorDashboard() {
       updatedStatus = 'completed';
       updatePayload = {
         status: updatedStatus,
-        claimedBy: null // Setting claimedBy to null when the question is solved
+        claimedBy: null, // Setting claimedBy to null when the question is solved
+        solvedBy: user.code
       };
     } else {
       return;
