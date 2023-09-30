@@ -649,7 +649,7 @@ export default function OrganizerQuestions() {
                     <button
                       type='button'
                       onClick={() => handleDeleteQuestion(question.id)}
-                      className='w-full md:w-auto mt-4 md:mt-0 rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                      className='w-full md:w-auto mt-4 md:mt-0 rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
                     >
                       Delete Question
                     </button>
