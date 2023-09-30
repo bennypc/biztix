@@ -616,7 +616,7 @@ export default function MentorDashboard() {
                               {question.teamName}
                             </span>
                             <span className='text-gray-400'>/</span>
-                            <span className='flex-grow whitespace-nowrap truncate md:max-w-[400px] max-w-[130px]'>
+                            <span className='flex-grow whitespace-wrap md:max-w-[400px] max-w-[130px]'>
                               {question.question}
                             </span>
                           </a>
@@ -624,7 +624,7 @@ export default function MentorDashboard() {
 
                         <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
                           <div className='flex items-center gap-x-2.5'>
-                            <p className='truncate'>{question.description}</p>
+                            <p className=''>{question.description}</p>
                             <svg
                               viewBox='0 0 2 2'
                               className='h-0.5 w-0.5 flex-none fill-gray-300'
