@@ -33,10 +33,11 @@ import {
   serverTimestamp,
   onSnapshot
 } from 'firebase/firestore';
+import { ref, getDownloadURL, uploadBytes, getStorage } from 'firebase/storage';
 var randomstring = require('randomstring');
 
 const db = getFirestore(app);
-
+const storage = getStorage(app);
 const statuses = {
   pending: 'text-yellow-500 bg-yellow-100/10',
   completed: 'text-green-400 bg-green-400/10',
@@ -138,8 +139,27 @@ export default function ParticipantDashboard() {
     const user = users.find((user) => user.code === id);
     return user ? user.firstName + ' ' + user.lastName : null;
   }
+  const [image, setImage] = useState(null);
+  const [imageUrl, setImageUrl] = useState('');
 
-  async function submitQuestion() {
+  const handleImageChange = (e) => {
+    if (e.target.files[0]) {
+      setImage(e.target.files[0]);
+    }
+  };
+
+  const uploadImage = async () => {
+    if (image) {
+      const storageRef = ref(storage, `images/${image.name}`);
+      const snapshot = await uploadBytes(storageRef, image);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      return downloadURL;
+    }
+    return '';
+  };
+
+  const submitQuestion = async () => {
+    const imageLink = await uploadImage(); // This will handle the image upload
     const questionID = randomstring.generate(10);
     const fullName = `${user.firstName} ${user.lastName}`;
     const timestamp = new Date();
@@ -151,6 +171,7 @@ export default function ParticipantDashboard() {
       question,
       category,
       description,
+      imageUrl: imageLink, // Add the image URL from Firebase Storage
       status: 'active',
       timestamp: serverTimestamp()
     };
@@ -158,13 +179,24 @@ export default function ParticipantDashboard() {
     try {
       const docRef = await addDoc(collection(db, 'tickets'), newQuestion);
       console.log('Document written with ID: ', docRef.id);
+      // Reset form and states
       setQuestion('');
       setCategory('Front-end');
       setDescription('');
+      setImage(null);
+      setImageUrl('');
     } catch (error) {
       console.error('Error adding document: ', error);
     }
-  }
+  };
+
+  const [expandedQuestionId, setExpandedQuestionId] = useState(null);
+
+  const toggleExpansion = (questionId) => {
+    setExpandedQuestionId(
+      expandedQuestionId === questionId ? null : questionId
+    );
+  };
 
   useEffect(() => {
     if (!loading) {
@@ -526,12 +558,13 @@ export default function ParticipantDashboard() {
                   return a.timestamp.seconds - b.timestamp.seconds;
                 })
                 .map((question) => (
-                  <li
-                    key={question.id}
-                    className='relative flex items-center space-x-4 px-4 py-4 sm:px-6 lg:px-8'
-                  >
-                    <div className='min-w-0 flex-auto'>
-                      <div className='flex items-center gap-x-3'>
+                  <li key={question.id} className='relative '>
+                    {/* The main question card area */}
+                    <div
+                      className='block cursor-pointer p-4'
+                      onClick={() => toggleExpansion(question.id)}
+                    >
+                      <div className='md:flex-grow flex items-center md:items-start gap-x-2 gap-y-1'>
                         <div
                           className={classNames(
                             statuses[question.status],
@@ -540,56 +573,67 @@ export default function ParticipantDashboard() {
                         >
                           <div className='h-2 w-2 rounded-full bg-current' />
                         </div>
-                        <h2 className='text-sm font-semibold leading-6 text-white truncate'>
-                          <a
-                            href={question.href}
-                            className='flex gap-x-2 items-center'
-                          >
-                            <span className='whitespace-nowrap flex-shrink-0'>
-                              {question.teamName}
-                            </span>
-                            <span className='text-gray-400 flex-shrink-0'>
-                              /
-                            </span>
-                            <span className='whitespace-nowrap truncate flex-grow'>
-                              {question.question}
-                            </span>
-                          </a>
-                        </h2>
-                      </div>
-                      <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
-                        <div className='flex items-center gap-x-2.5'>
-                          <p className='truncate'>{question.description}</p>
-                          <svg
-                            viewBox='0 0 2 2'
-                            className='h-0.5 w-0.5 flex-none fill-gray-300'
-                          >
-                            <circle cx={1} cy={1} r={1} />
-                          </svg>
-                          <p className='whitespace-nowrap'>
-                            {timeAgo(question.timestamp)}
-                          </p>
-                        </div>
+                        <div className='flex-grow'>
+                          <h2 className='text-sm font-semibold text-white'>
+                            {question.teamName} / {question.question}
+                          </h2>
+                          <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
+                            <div className='flex items-center gap-x-2.5'>
+                              <p className='truncate'>{question.description}</p>
+                              <svg
+                                viewBox='0 0 2 2'
+                                className='h-0.5 w-0.5 flex-none fill-gray-300'
+                              >
+                                <circle cx={1} cy={1} r={1} />
+                              </svg>
+                              <p className='whitespace-nowrap'>
+                                {timeAgo(question.timestamp)}
+                              </p>
+                            </div>
 
-                        {question.claimedBy && !question.solvedBy && (
-                          <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-indigo-500'>
-                            Claimed by {findUserNameById(question.claimedBy)}
-                          </p>
-                        )}
-                        {question.solvedBy && (
-                          <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-green-500'>
-                            Solved by {findUserNameById(question.solvedBy)}
-                          </p>
-                        )}
+                            {question.claimedBy && !question.solvedBy && (
+                              <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-indigo-500'>
+                                Claimed by{' '}
+                                {findUserNameById(question.claimedBy)}
+                              </p>
+                            )}
+                            {question.solvedBy && (
+                              <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-green-500'>
+                                Solved by {findUserNameById(question.solvedBy)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className='flex flex-shrink-0'>
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              statuses[question.status].bgColor
+                            }`}
+                          ></span>
+                        </div>
                       </div>
                     </div>
-                    <div className='rounded-full flex-none py-1 px-2 text-xs font-medium ring-1 ring-inset text-white'>
+
+                    {/* Hidden content to show on click */}
+                    <div
+                      className={`transition-max-height duration-700 ease-in-out overflow-hidden ${
+                        expandedQuestionId === question.id
+                          ? 'max-h-96'
+                          : 'max-h-0'
+                      }`}
+                    >
+                      <div className='p-4'>
+                        <img
+                          src={question.imageUrl}
+                          alt='Expanded Content'
+                          className='w-full h-auto'
+                        />
+                      </div>
+                    </div>
+
+                    <div className='absolute top-6 right-8 hidden md:block rounded-full py-1 px-2 text-xs font-medium ring-1 ring-inset text-white mb-2 md:mb-0'>
                       {question.category}
                     </div>
-                    {/* <ChevronRightIcon
-                    className='h-5 w-5 flex-none text-gray-400'
-                    aria-hidden='true'
-                  /> */}
                   </li>
                 ))}
             </ul>
@@ -665,6 +709,22 @@ export default function ParticipantDashboard() {
                       placeholder='Leftmost table of CPA Hall'
                     />
                   </div>
+                </div>
+                <div className='mt-4'>
+                  <label
+                    htmlFor='image-upload'
+                    className='block text-sm font-medium leading-6 text-white'
+                  >
+                    Upload Image
+                  </label>
+                  <input
+                    type='file'
+                    id='image-upload'
+                    onChange={handleImageChange}
+                    className='mt-2 block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4
+            file:rounded-md file:border-0 file:text-sm file:font-semibold
+            file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100'
+                  />
                 </div>
               </div>
               <button

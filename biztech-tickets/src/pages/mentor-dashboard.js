@@ -161,6 +161,14 @@ export default function MentorDashboard() {
     }
   }
 
+  const [expandedQuestionId, setExpandedQuestionId] = useState(null);
+
+  const toggleExpansion = (questionId) => {
+    setExpandedQuestionId(
+      expandedQuestionId === questionId ? null : questionId
+    );
+  };
+
   useEffect(() => {
     if (!loading) {
       if (!user) {
@@ -596,68 +604,100 @@ export default function MentorDashboard() {
                   return a.timestamp.seconds - b.timestamp.seconds;
                 })
                 .map((question) => (
-                  <li
-                    key={question.id}
-                    className='relative flex flex-col md:flex-row items-start md:items-center space-y-2 md:space-y-0 md:space-x-4 px-2 py-3 sm:px-4 lg:px-6'
-                  >
-                    <div className='md:flex-grow flex items-center md:items-start gap-x-2 gap-y-1'>
-                      <div
-                        className={classNames(
-                          statuses[question.status],
-                          'flex-none rounded-full p-1'
-                        )}
-                      >
-                        <div className='h-2 w-2 rounded-full bg-current' />
-                      </div>
-                      <div className='flex-grow'>
-                        <h2 className='text-sm font-semibold leading-6 text-white'>
-                          <a href={question.href} className='flex gap-x-2'>
-                            <span className='whitespace-nowrap'>
-                              {question.teamName}
-                            </span>
-                            <span className='text-gray-400'>/</span>
-                            <span className='flex-grow whitespace-wrap md:max-w-[400px] max-w-[170px]'>
-                              {question.question}
-                            </span>
-                          </a>
-                        </h2>
+                  <li key={question.id} className='relative '>
+                    {/* The main question card area */}
+                    <div
+                      className='block cursor-pointer p-4'
+                      onClick={() => toggleExpansion(question.id)}
+                    >
+                      <div className='md:flex-grow flex items-center md:items-start gap-x-2 gap-y-1'>
+                        <div
+                          className={classNames(
+                            statuses[question.status],
+                            'flex-none rounded-full p-1'
+                          )}
+                        >
+                          <div className='h-2 w-2 rounded-full bg-current' />
+                        </div>
+                        <div className='flex-grow'>
+                          <h2 className='text-sm font-semibold text-white'>
+                            {question.teamName} / {question.question}
+                          </h2>
+                          <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
+                            <div className='flex items-center gap-x-2.5'>
+                              <p className='truncate'>{question.description}</p>
+                              <svg
+                                viewBox='0 0 2 2'
+                                className='h-0.5 w-0.5 flex-none fill-gray-300'
+                              >
+                                <circle cx={1} cy={1} r={1} />
+                              </svg>
+                              <p className='whitespace-nowrap'>
+                                {timeAgo(question.timestamp)}
+                              </p>
+                            </div>
 
-                        <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
-                          <div className='flex items-center gap-x-2.5'>
-                            <p className=''>{question.description}</p>
-                            <svg
-                              viewBox='0 0 2 2'
-                              className='h-0.5 w-0.5 flex-none fill-gray-300'
-                            >
-                              <circle cx={1} cy={1} r={1} />
-                            </svg>
-                            <p className='whitespace-nowrap'>
-                              {timeAgo(question.timestamp)}
-                            </p>
+                            {question.claimedBy && !question.solvedBy && (
+                              <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-indigo-500'>
+                                Claimed by{' '}
+                                {findUserNameById(question.claimedBy)}
+                              </p>
+                            )}
+                            {question.solvedBy && (
+                              <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-green-500'>
+                                Solved by {findUserNameById(question.solvedBy)}
+                              </p>
+                            )}
                           </div>
-
-                          {question.claimedBy && !question.solvedBy && (
-                            <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-indigo-500'>
-                              Claimed by {findUserNameById(question.claimedBy)}
-                            </p>
-                          )}
-                          {question.solvedBy && (
-                            <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-green-500'>
-                              Solved by {findUserNameById(question.solvedBy)}
-                            </p>
-                          )}
+                        </div>
+                        <div className='flex flex-shrink-0'>
+                          <span
+                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              statuses[question.status].bgColor
+                            }`}
+                          ></span>
                         </div>
                       </div>
-                      <div className='rounded-full py-1 px-2 text-xs font-medium ring-1 ring-inset text-white mb-2 md:mb-0'>
-                        {question.category}
+                    </div>
+
+                    {/* Hidden content to show on click */}
+                    <div
+                      className={`transition-max-height duration-700 ease-in-out overflow-hidden ${
+                        expandedQuestionId === question.id
+                          ? 'max-h-96'
+                          : 'max-h-0'
+                      }`}
+                    >
+                      <div className='p-4'>
+                        <img
+                          src={question.imageUrl}
+                          alt='Expanded Content'
+                          className='w-full h-auto'
+                        />
                       </div>
                     </div>
+
+                    {/* Delete button - make sure to stop event propagation */}
+
+                    {/* <button
+                      type='button'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteQuestion(question.id);
+                      }}
+                      className='absolute top-5 right-2 rounded-md bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-400'
+                    >
+                      Delete
+                    </button> */}
 
                     {question.status === 'active' && (
                       <button
                         type='button'
-                        onClick={() => handleStatusChange(question.id)}
-                        className='w-full md:w-auto mt-4 md:mt-0 rounded-md bg-blue-800 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStatusChange(question.id);
+                        }}
+                        className='absolute top-5 right-2 rounded-md bg-blue-800 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
                       >
                         Claim Question
                       </button>
@@ -666,12 +706,18 @@ export default function MentorDashboard() {
                       question.claimedBy === user.code && (
                         <button
                           type='button'
-                          onClick={() => handleStatusChange(question.id)}
-                          className='w-full md:w-auto mt-4 md:mt-0 rounded-md bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(question.id);
+                          }}
+                          className='absolute top-5 right-2  rounded-md bg-green-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500'
                         >
                           Click to solve
                         </button>
                       )}
+                    <div className='absolute top-6 right-40 hidden md:block rounded-full py-1 px-2 text-xs font-medium ring-1 ring-inset text-white mb-2 md:mb-0'>
+                      {question.category}
+                    </div>
                   </li>
                 ))}
             </ul>
