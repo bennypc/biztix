@@ -574,7 +574,7 @@ export default function ParticipantDashboard() {
                           <div className='h-2 w-2 rounded-full bg-current' />
                         </div>
                         <div className='flex-grow'>
-                          <h2 className='text-sm font-semibold text-white'>
+                          <h2 className='text-sm font-semibold text-white md:mr-44'>
                             {question.teamName} / {question.question}
                           </h2>
                           <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
@@ -622,13 +622,14 @@ export default function ParticipantDashboard() {
                           : 'max-h-0'
                       }`}
                     >
-                      <div className='p-4'>
-                        <img
-                          src={question.imageUrl}
-                          alt='Expanded Content'
-                          className='w-full h-auto'
-                        />
-                      </div>
+                      {question.imageUrl && (
+                        <div className='p-4'>
+                          <img
+                            src={question.imageUrl}
+                            className='w-full h-auto'
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className='absolute top-6 right-8 hidden md:block rounded-full py-1 px-2 text-xs font-medium ring-1 ring-inset text-white mb-2 md:mb-0'>

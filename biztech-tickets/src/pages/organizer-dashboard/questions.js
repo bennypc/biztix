@@ -651,7 +651,7 @@ export default function OrganizerQuestions() {
                           <div className='h-2 w-2 rounded-full bg-current' />
                         </div>
                         <div className='flex-grow'>
-                          <h2 className='text-sm font-semibold text-white'>
+                          <h2 className='text-sm font-semibold text-white md:mr-44'>
                             {question.teamName} / {question.question}
                           </h2>
                           <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
@@ -701,14 +701,15 @@ export default function OrganizerQuestions() {
                           : 'max-h-0'
                       }`}
                     >
-                      <div className='p-4'>
-                        <img
-                          src={question.imageUrl}
-                          alt='Expanded Content'
-                          className='w-full h-auto'
-                        />
-                        <p>{question.longDescription}</p>
-                      </div>
+                      {question.imageUrl && (
+                        <div className='p-4'>
+                          <img
+                            src={question.imageUrl}
+                            alt='Expanded Content'
+                            className='w-full h-auto'
+                          />
+                        </div>
+                      )}
                     </div>
 
                     {/* Delete button - make sure to stop event propagation */}
