@@ -620,7 +620,7 @@ export default function MentorDashboard() {
                           <div className='h-2 w-2 rounded-full bg-current' />
                         </div>
                         <div className='flex-grow'>
-                          <h2 className='text-sm font-semibold text-white md:mr-44'>
+                          <h2 className='text-sm font-semibold text-white md:mr-44 mr-[5.5rem]'>
                             {question.teamName} / {question.question}
                           </h2>
                           <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
