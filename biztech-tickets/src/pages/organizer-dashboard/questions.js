@@ -697,7 +697,7 @@ export default function OrganizerQuestions() {
                     <div
                       className={`transition-max-height duration-700 ease-in-out overflow-hidden ${
                         expandedQuestionId === question.id
-                          ? 'max-h-96'
+                          ? 'max-h-[96rem]'
                           : 'max-h-0'
                       }`}
                     >
