@@ -36,7 +36,7 @@ const codeSnippets = [
   `printf("Hackathon season is here!\\n");`,
   `for(int i = 0; i < 3; i++) {\n    printf("%d days to ProduHacks!\\n", 3-i);\n}`,
   `char *event = "ProduHacks";\nprintf("Event: %s\\n", event);`,
-  `int sum(int a, int b) {\n  return a + b;\n}\nprintf("%d", sum(3, 5));`,
+  `int sum(int a, int b) {\n    return a + b;\n}\nprintf("%d", sum(3, 5));`,
   `double pi = 3.14159;\nprintf("Pi: %.2f\\n", pi);`,
 
   // SQL Snippets
