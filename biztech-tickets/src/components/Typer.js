@@ -95,7 +95,26 @@ const codeSnippets = [
   `add eax, ebx ; Add UBC to ProduHacks`,
   `sub eax, 2024 ; Subtract the year`,
   `cmp eax, ebx ; Compare UBC with ProduHacks`,
-  `msg db 'Welcome to ProduHacks!', 0xA ; Define string`
+  `msg db 'Welcome to ProduHacks!', 0xA ; Define string`,
+
+  `public static void joinTeam(String memberName) {\n    System.out.println(memberName + " has joined the team.");\n}`,
+  `int calculateScore(int challengesCompleted) {\n    return challengesCompleted * 10;\n}`,
+  `String hackathonLocation = "UBC Campus";\nSystem.out.println("Location: " + hackathonLocation);`,
+  `boolean submitProject(boolean completed) {\n    return completed;\n}`,
+  `for (int i = 0; i < 10; i++) {\n    System.out.println("BizTech challenge " + i);\n}`,
+
+  `while hacking:\n    drink_coffee()`,
+
+  `break;`,
+
+  `System.out.println("Hello, ProduHacks!");`,
+  `print('Welcome to Vancouver!')`,
+  `echo "UBC BizTech";`,
+  `if (hackathonStarted) {\n    System.out.println("Drink redbull");\n}`,
+  `print("Where is the redbull")`,
+  `cout << "UBC BizTech" << endl;`,
+  `document.getElementById("hackathon-name").textContent = "Welcome to UBC ProduHacks!";`,
+  `participants.forEach(hacker => {\n    console.log(hacker.name + " is eating pizza");\n});`
 ];
 
 const normalizeString = (str) => {
