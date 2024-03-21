@@ -20,21 +20,21 @@ const storage = getStorage(app);
 const codeSnippets = [
   // Java Snippets
   `System.out.println("Welcome to ProduHacks!");`,
-  `public class BizTech {\n  public static void main(String[] args) {\n    System.out.println("ProduHacks!");\n  }\n}`,
+  //`public class BizTech {\n    public static void main(String[] args) {\n    System.out.println("ProduHacks!");\n    }\n}`,
   `int[] scores = new int[]{88, 73, 90, 100};`,
-  `for (int i = 0; i < 4; i++) {\n  System.out.println("Scoring: " + scores[i]);\n}`,
+  `for (int i = 0; i < 4; i++) {\n    System.out.println("Scoring: " + scores[i]);\n}`,
   `String hackathon = "ProduHacks";\nSystem.out.println(hackathon.toUpperCase());`,
 
   // Python Snippets
   `print("Hello, ProduHacks!")`,
-  `participants = ["Jay", "Kamryn", "Benny"]\nfor p in participants:\n  print(p)`,
-  `def calculate_bonus(score):\n  return score * 0.1 if score > 90 else 0`,
+  `participants = ["Jay", "Kamryn", "Benny"]\nfor p in participants:\n    print(p)`,
+  `def calculate_bonus(score):\n    return score * 0.1 if score > 90 else 0`,
   `hackathon = {"name": "ProduHacks", "year": 2024}\nprint(hackathon["name"])`,
   `import random\nprint(random.choice(["BizTech", "UBC", "ProduHacks"]))`,
 
   // C Snippets
   `printf("Hackathon season is here!\\n");`,
-  //`for(int i = 0; i < 3; i++) {\n  printf("%d days to ProduHacks!\\n", 3-i);\n}`,
+  `for(int i = 0; i < 3; i++) {\n    printf("%d days to ProduHacks!\\n", 3-i);\n}`,
   `char *event = "ProduHacks";\nprintf("Event: %s\\n", event);`,
   `int sum(int a, int b) {\n  return a + b;\n}\nprintf("%d", sum(3, 5));`,
   `double pi = 3.14159;\nprintf("Pi: %.2f\\n", pi);`,
@@ -49,21 +49,21 @@ const codeSnippets = [
   // Mix of Shorter Snippets
   `boolean isUBCStudent = true;`,
   `String welcomeMessage = "Start hacking!";`,
-  `if (isUBCStudent) {\n  System.out.println(welcomeMessage);\n}`,
+  `if (isUBCStudent) {\n    System.out.println(welcomeMessage);\n}`,
   `x = 42\nif x > 0: print("Positive")`,
   `import math\nprint(math.sqrt(16))`,
 
   // Mix of Longer Snippets
   //`public class Challenge {\n  String name;\n  int level;\n  public Challenge(String name, int level) {\n    this.name = name;\n    this.level = level;\n  }\n}`,
-  `for (String part : new String[]{"Design", "Code", "Pitch"}) {\n  System.out.println(part);\n}`,
+  `for (String part : new String[]{"Design", "Code", "Pitch"}) {\n    System.out.println(part);\n}`,
   //`int total = 0;\nfor (int i = 1; i <= 10; i++) {\n  total += i;\n}\nSystem.out.println("Total: " + total);`,
   `scores = list(filter(lambda x: x > 80, scores))\nprint(scores)`,
-  `try:\n  x = int(input("Enter a number: "))\nexcept ValueError:\n  print("Not a valid number")`,
+  `try:\n    x = int(input("Enter a number: "))\nexcept ValueError:\n    print("Not a valid number")`,
 
   // More Complex Snippets
-  `class Participant {\n  String name;\n  public Participant(String name) {\n    this.name = name;\n  }\n}`,
+  `class Participant {\n    String name;\n    public Participant(String name) {\n    this.name = name;\n    }\n}`,
   `List<String> projects = Arrays.asList("App", "Website", "AI Model");\nprojects.forEach(System.out::println);`,
-  //`int factorial(int n) {\n  if (n == 0) return 1;\n  return n * factorial(n-1);\n}`,
+  `int factorial(int n) {\n    if (n == 0) return 1;\n    return n * factorial(n-1);\n}`,
   `String.join(", ", new String[]{"BizTech", "UBC", "ProduHacks"})`,
   `Stream.of("BizTech", "UBC", "ProduHacks").forEach(System.out::println);`,
 
