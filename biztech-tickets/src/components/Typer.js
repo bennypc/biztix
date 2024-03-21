@@ -20,7 +20,7 @@ const storage = getStorage(app);
 const codeSnippets = [
   // Java Snippets
   `System.out.println("Welcome to ProduHacks!");`,
-  `public class BizTech {\n  public static void main(String[] args) {\n    System.out.println("ProduHacks is the best event at UBC!");\n  }\n}`,
+  `public class BizTech {\n  public static void main(String[] args) {\n    System.out.println("ProduHacks!");\n  }\n}`,
   `int[] scores = new int[]{88, 73, 90, 100};`,
   `for (int i = 0; i < 4; i++) {\n  System.out.println("Scoring: " + scores[i]);\n}`,
   `String hackathon = "ProduHacks";\nSystem.out.println(hackathon.toUpperCase());`,
@@ -54,7 +54,7 @@ const codeSnippets = [
   `import math\nprint(math.sqrt(16))`,
 
   // Mix of Longer Snippets
-  `public class Challenge {\n  String name;\n  int level;\n  public Challenge(String name, int level) {\n    this.name = name;\n    this.level = level;\n  }\n}`,
+  //`public class Challenge {\n  String name;\n  int level;\n  public Challenge(String name, int level) {\n    this.name = name;\n    this.level = level;\n  }\n}`,
   `for (String part : new String[]{"Design", "Code", "Pitch"}) {\n  System.out.println(part);\n}`,
   `int total = 0;\nfor (int i = 1; i <= 10; i++) {\n  total += i;\n}\nSystem.out.println("Total: " + total);`,
   `scores = list(filter(lambda x: x > 80, scores))\nprint(scores)`,
