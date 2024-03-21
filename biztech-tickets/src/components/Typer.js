@@ -34,7 +34,7 @@ const codeSnippets = [
 
   // C Snippets
   `printf("Hackathon season is here!\\n");`,
-  `for(int i = 0; i < 3; i++) {\n  printf("%d days to ProduHacks!\\n", 3-i);\n}`,
+  //`for(int i = 0; i < 3; i++) {\n  printf("%d days to ProduHacks!\\n", 3-i);\n}`,
   `char *event = "ProduHacks";\nprintf("Event: %s\\n", event);`,
   `int sum(int a, int b) {\n  return a + b;\n}\nprintf("%d", sum(3, 5));`,
   `double pi = 3.14159;\nprintf("Pi: %.2f\\n", pi);`,
@@ -56,7 +56,7 @@ const codeSnippets = [
   // Mix of Longer Snippets
   //`public class Challenge {\n  String name;\n  int level;\n  public Challenge(String name, int level) {\n    this.name = name;\n    this.level = level;\n  }\n}`,
   `for (String part : new String[]{"Design", "Code", "Pitch"}) {\n  System.out.println(part);\n}`,
-  `int total = 0;\nfor (int i = 1; i <= 10; i++) {\n  total += i;\n}\nSystem.out.println("Total: " + total);`,
+  //`int total = 0;\nfor (int i = 1; i <= 10; i++) {\n  total += i;\n}\nSystem.out.println("Total: " + total);`,
   `scores = list(filter(lambda x: x > 80, scores))\nprint(scores)`,
   `try:\n  x = int(input("Enter a number: "))\nexcept ValueError:\n  print("Not a valid number")`,
 
@@ -73,7 +73,7 @@ const codeSnippets = [
   // More C
   //`void printTeamMembers(char *teamMembers[], int size) {\n    for (int i = 0; i < size; i++) {\n        printf("%s\\n", teamMembers[i]);\n    }\n}`,
   //`if (isRegistered) {\n    printf("Participant is already registered.\\n");\n} else {\n    printf("Please complete your registration.\\n");\n}`,
-  `int hoursPassed = 0;\nwhile (hoursPassed < 24) {\n    printf("Hackathon in progress...\\n");\n    hoursPassed++;\n}`,
+  //`int hoursPassed = 0;\nwhile (hoursPassed < 24) {\n    printf("Hackathon in progress...\\n");\n    hoursPassed++;\n}`,
 
   // DrRacket
   `(define (say-hello) (display "Hello ProduHacks!"))`,
