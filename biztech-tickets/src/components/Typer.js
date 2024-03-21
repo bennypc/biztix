@@ -63,7 +63,7 @@ const codeSnippets = [
   // More Complex Snippets
   `class Participant {\n  String name;\n  public Participant(String name) {\n    this.name = name;\n  }\n}`,
   `List<String> projects = Arrays.asList("App", "Website", "AI Model");\nprojects.forEach(System.out::println);`,
-  `int factorial(int n) {\n  if (n == 0) return 1;\n  return n * factorial(n-1);\n}`,
+  //`int factorial(int n) {\n  if (n == 0) return 1;\n  return n * factorial(n-1);\n}`,
   `String.join(", ", new String[]{"BizTech", "UBC", "ProduHacks"})`,
   `Stream.of("BizTech", "UBC", "ProduHacks").forEach(System.out::println);`,
 
