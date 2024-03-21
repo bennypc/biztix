@@ -128,6 +128,7 @@ const CodeTyper = () => {
   const [timeLeft, setTimeLeft] = useState(60);
   const [gameState, setGameState] = useState('waiting'); // waiting, playing, finished
   const { user, loading, setUser } = useUser();
+  const [errors, setErrors] = useState([]);
 
   const getTimerBarColor = () => {
     const percentageLeft = (timeLeft / 60) * 100;
@@ -211,7 +212,18 @@ const CodeTyper = () => {
 
   const handleInputChange = (e) => {
     if (gameState !== 'playing') return;
-    setUserInput(e.target.value);
+
+    const input = e.target.value;
+    setUserInput(input);
+
+    // Calculate errors
+    const newErrors = [];
+    for (let i = 0; i < currentSnippet.length; i++) {
+      if (i < input.length && input[i] !== currentSnippet[i]) {
+        newErrors.push(i);
+      }
+    }
+    setErrors(newErrors);
   };
 
   const handleKeyDown = (e) => {
@@ -257,7 +269,16 @@ const CodeTyper = () => {
               Time Left: {timeLeft}s
             </div>
             <div className='text-white font-semibold'>Score: {score}</div>
-            <pre className='text-white font-normal my-8'>{currentSnippet}</pre>
+            <pre className='text-white font-normal my-8'>
+              {currentSnippet.split('').map((char, index) => {
+                const error = errors.includes(index);
+                return (
+                  <span key={index} className={error ? 'text-red-500' : ''}>
+                    {char}
+                  </span>
+                );
+              })}
+            </pre>
             <textarea
               value={userInput}
               className='px-3 py-3'
