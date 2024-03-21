@@ -71,8 +71,8 @@ const codeSnippets = [
   `SELECT TeamName, SUM(Points) AS TotalPoints FROM Scores GROUP BY TeamName;`,
 
   // More C
-  `void printTeamMembers(char *teamMembers[], int size) {\n    for (int i = 0; i < size; i++) {\n        printf("%s\\n", teamMembers[i]);\n    }\n}`,
-  `if (isRegistered) {\n    printf("Participant is already registered.\\n");\n} else {\n    printf("Please complete your registration.\\n");\n}`,
+  //`void printTeamMembers(char *teamMembers[], int size) {\n    for (int i = 0; i < size; i++) {\n        printf("%s\\n", teamMembers[i]);\n    }\n}`,
+  //`if (isRegistered) {\n    printf("Participant is already registered.\\n");\n} else {\n    printf("Please complete your registration.\\n");\n}`,
   `int hoursPassed = 0;\nwhile (hoursPassed < 24) {\n    printf("Hackathon in progress...\\n");\n    hoursPassed++;\n}`,
 
   // DrRacket
