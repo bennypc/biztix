@@ -2,8 +2,23 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body {
-  
+html,
+body {
   background-color: black;
-  
+}
+
+@keyframes colorChange {
+  0% {
+    background-color: #007928;
+  }
+  50% {
+    background-color: #f59e0b; /* Tailwind's yellow-500 */
+  }
+  100% {
+    background-color: #f30000; /* Tailwind's red-500 */
+  }
+}
+
+.timer-bar {
+  animation: colorChange 60s linear infinite;
 }

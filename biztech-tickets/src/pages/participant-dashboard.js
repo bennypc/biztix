@@ -11,6 +11,7 @@ import {
   Cog6ToothIcon,
   FolderIcon,
   GlobeAltIcon,
+  PuzzlePieceIcon,
   ServerIcon,
   SignalIcon,
   XMarkIcon
@@ -91,7 +92,7 @@ export default function ParticipantDashboard() {
 
   const navigation = [
     { name: 'Tickets', href: '#', icon: FolderIcon, current: true },
-
+    { name: 'Games', href: '/games', icon: PuzzlePieceIcon, current: false },
     {
       name: 'Sign Out',
       onClick: signOut,
