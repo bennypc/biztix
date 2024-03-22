@@ -14,7 +14,8 @@ import {
   ServerIcon,
   SignalIcon,
   XMarkIcon,
-  PuzzlePieceIcon
+  PuzzlePieceIcon,
+  ShieldExclamationIcon
 } from '@heroicons/react/24/outline';
 import {
   Bars3Icon,
@@ -102,7 +103,12 @@ export default function GamesDashboard() {
       current: false
     },
     { name: 'Games', href: '#', icon: PuzzlePieceIcon, current: true },
-
+    {
+      name: 'Report an Issue',
+      href: '/report-issue',
+      icon: ShieldExclamationIcon,
+      current: false
+    },
     {
       name: 'Sign Out',
       onClick: signOut,

@@ -12,6 +12,7 @@ import {
   FolderIcon,
   GlobeAltIcon,
   ServerIcon,
+  ShieldExclamationIcon,
   SignalIcon,
   UserGroupIcon,
   UserIcon,
@@ -140,6 +141,12 @@ export default function OrganizerDashboard() {
       name: 'Tickets',
       href: '/organizer-dashboard/questions',
       icon: FolderIcon,
+      current: false
+    },
+    {
+      name: 'Report an Issue',
+      href: '/report-issue',
+      icon: ShieldExclamationIcon,
       current: false
     },
 

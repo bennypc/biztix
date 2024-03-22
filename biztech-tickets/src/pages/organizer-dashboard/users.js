@@ -12,6 +12,7 @@ import {
   FolderIcon,
   GlobeAltIcon,
   ServerIcon,
+  ShieldExclamationIcon,
   SignalIcon,
   UserGroupIcon,
   UserIcon,
@@ -117,7 +118,12 @@ export default function OrganizerDashboard() {
       icon: FolderIcon,
       current: false
     },
-
+    {
+      name: 'Report an Issue',
+      href: '/report-issue',
+      icon: ShieldExclamationIcon,
+      current: false
+    },
     {
       name: 'Sign Out',
       onClick: signOut,

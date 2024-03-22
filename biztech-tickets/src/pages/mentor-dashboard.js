@@ -12,6 +12,7 @@ import {
   FolderIcon,
   GlobeAltIcon,
   ServerIcon,
+  ShieldExclamationIcon,
   SignalIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
@@ -85,7 +86,12 @@ export default function MentorDashboard() {
   const [description, setDescription] = useState('');
   const navigation = [
     { name: 'Tickets', href: '#', icon: FolderIcon, current: true },
-
+    {
+      name: 'Report an Issue',
+      href: '/report-issue',
+      icon: ShieldExclamationIcon,
+      current: false
+    },
     {
       name: 'Sign Out',
       onClick: signOut,

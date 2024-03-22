@@ -13,6 +13,7 @@ import {
   GlobeAltIcon,
   PuzzlePieceIcon,
   ServerIcon,
+  ShieldExclamationIcon,
   SignalIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
@@ -97,7 +98,19 @@ export default function ParticipantDashboard() {
       icon: FolderIcon,
       current: true
     },
-    { name: 'Games', href: '/games', icon: PuzzlePieceIcon, current: false },
+
+    {
+      name: 'Games',
+      href: '/games',
+      icon: PuzzlePieceIcon,
+      current: false
+    },
+    {
+      name: 'Report an Issue',
+      href: '/report-issue',
+      icon: ShieldExclamationIcon,
+      current: false
+    },
     {
       name: 'Sign Out',
       onClick: signOut,
