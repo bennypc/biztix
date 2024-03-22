@@ -91,7 +91,12 @@ export default function ParticipantDashboard() {
   const [description, setDescription] = useState('');
 
   const navigation = [
-    { name: 'Tickets', href: '#', icon: FolderIcon, current: true },
+    {
+      name: 'Tickets',
+      href: '/participant-dashboard',
+      icon: FolderIcon,
+      current: true
+    },
     { name: 'Games', href: '/games', icon: PuzzlePieceIcon, current: false },
     {
       name: 'Sign Out',
@@ -537,107 +542,111 @@ export default function ParticipantDashboard() {
               role='list'
               className='divide-y divide-white/5 max-h-[20rem] overflow-y-auto lg:max-h-full'
             >
-              {questions
-                .filter((question) => question.teamName === user.teamName)
-                .sort((a, b) => {
-                  // Handle cases where timestamp is null or undefined for a or b
-                  if (!a.timestamp && !b.timestamp) return 0; // If both are missing timestamps, they are equal.
-                  if (!a.timestamp) return 1; // If only a is missing a timestamp, put it last.
-                  if (!b.timestamp) return -1; // If only b is missing a timestamp, put it first.
+              {user &&
+                questions
+                  .filter((question) => question.teamName === user.teamName)
+                  .sort((a, b) => {
+                    // Handle cases where timestamp is null or undefined for a or b
+                    if (!a.timestamp && !b.timestamp) return 0; // If both are missing timestamps, they are equal.
+                    if (!a.timestamp) return 1; // If only a is missing a timestamp, put it last.
+                    if (!b.timestamp) return -1; // If only b is missing a timestamp, put it first.
 
-                  // If either timestamp is "just now", handle the special case
-                  if (timeAgo(a.timestamp) === 'just now') return -1;
-                  if (timeAgo(b.timestamp) === 'just now') return 1;
+                    // If either timestamp is "just now", handle the special case
+                    if (timeAgo(a.timestamp) === 'just now') return -1;
+                    if (timeAgo(b.timestamp) === 'just now') return 1;
 
-                  // If either question is "completed", handle that case
-                  if (a.status === 'completed' && b.status !== 'completed')
-                    return 1;
-                  if (b.status === 'completed' && a.status !== 'completed')
-                    return -1;
+                    // If either question is "completed", handle that case
+                    if (a.status === 'completed' && b.status !== 'completed')
+                      return 1;
+                    if (b.status === 'completed' && a.status !== 'completed')
+                      return -1;
 
-                  // If both are active or both are pending, sort based on timestamp
-                  return a.timestamp.seconds - b.timestamp.seconds;
-                })
-                .map((question) => (
-                  <li key={question.id} className='relative '>
-                    {/* The main question card area */}
-                    <div
-                      className='block cursor-pointer p-4'
-                      onClick={() => toggleExpansion(question.id)}
-                    >
-                      <div className='md:flex-grow flex items-center md:items-start gap-x-2 gap-y-1'>
-                        <div
-                          className={classNames(
-                            statuses[question.status],
-                            'flex-none rounded-full p-1'
-                          )}
-                        >
-                          <div className='h-2 w-2 rounded-full bg-current' />
-                        </div>
-                        <div className='flex-grow'>
-                          <h2 className='text-sm font-semibold text-white md:mr-44 mr-[5.5rem]'>
-                            {question.teamName} / {question.question}
-                          </h2>
-                          <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
-                            <div className='flex items-center gap-x-2.5'>
-                              <p className='truncate'>{question.description}</p>
-                              <svg
-                                viewBox='0 0 2 2'
-                                className='h-0.5 w-0.5 flex-none fill-gray-300'
-                              >
-                                <circle cx={1} cy={1} r={1} />
-                              </svg>
-                              <p className='whitespace-nowrap'>
-                                {timeAgo(question.timestamp)}
-                              </p>
+                    // If both are active or both are pending, sort based on timestamp
+                    return a.timestamp.seconds - b.timestamp.seconds;
+                  })
+                  .map((question) => (
+                    <li key={question.id} className='relative '>
+                      {/* The main question card area */}
+                      <div
+                        className='block cursor-pointer p-4'
+                        onClick={() => toggleExpansion(question.id)}
+                      >
+                        <div className='md:flex-grow flex items-center md:items-start gap-x-2 gap-y-1'>
+                          <div
+                            className={classNames(
+                              statuses[question.status],
+                              'flex-none rounded-full p-1'
+                            )}
+                          >
+                            <div className='h-2 w-2 rounded-full bg-current' />
+                          </div>
+                          <div className='flex-grow'>
+                            <h2 className='text-sm font-semibold text-white md:mr-44 mr-[5.5rem]'>
+                              {question.teamName} / {question.question}
+                            </h2>
+                            <div className='mt-1 flex flex-col sm:flex-row gap-x-2.5 text-xs leading-5 text-gray-400 mb-2'>
+                              <div className='flex items-center gap-x-2.5'>
+                                <p className='truncate'>
+                                  {question.description}
+                                </p>
+                                <svg
+                                  viewBox='0 0 2 2'
+                                  className='h-0.5 w-0.5 flex-none fill-gray-300'
+                                >
+                                  <circle cx={1} cy={1} r={1} />
+                                </svg>
+                                <p className='whitespace-nowrap'>
+                                  {timeAgo(question.timestamp)}
+                                </p>
+                              </div>
+
+                              {question.claimedBy && !question.solvedBy && (
+                                <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-indigo-500'>
+                                  Claimed by{' '}
+                                  {findUserNameById(question.claimedBy)}
+                                </p>
+                              )}
+                              {question.solvedBy && (
+                                <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-green-500'>
+                                  Solved by{' '}
+                                  {findUserNameById(question.solvedBy)}
+                                </p>
+                              )}
                             </div>
-
-                            {question.claimedBy && !question.solvedBy && (
-                              <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-indigo-500'>
-                                Claimed by{' '}
-                                {findUserNameById(question.claimedBy)}
-                              </p>
-                            )}
-                            {question.solvedBy && (
-                              <p className='whitespace-nowrap mt-1 sm:mt-0 sm:ml-4 text-green-500'>
-                                Solved by {findUserNameById(question.solvedBy)}
-                              </p>
-                            )}
+                          </div>
+                          <div className='flex flex-shrink-0'>
+                            <span
+                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                statuses[question.status].bgColor
+                              }`}
+                            ></span>
                           </div>
                         </div>
-                        <div className='flex flex-shrink-0'>
-                          <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              statuses[question.status].bgColor
-                            }`}
-                          ></span>
-                        </div>
                       </div>
-                    </div>
 
-                    {/* Hidden content to show on click */}
-                    <div
-                      className={`transition-max-height duration-700 ease-in-out overflow-hidden ${
-                        expandedQuestionId === question.id
-                          ? 'max-h-[96rem]'
-                          : 'max-h-0'
-                      }`}
-                    >
-                      {question.imageUrl && (
-                        <div className='p-4'>
-                          <img
-                            src={question.imageUrl}
-                            className='w-full h-auto'
-                          />
-                        </div>
-                      )}
-                    </div>
+                      {/* Hidden content to show on click */}
+                      <div
+                        className={`transition-max-height duration-700 ease-in-out overflow-hidden ${
+                          expandedQuestionId === question.id
+                            ? 'max-h-[96rem]'
+                            : 'max-h-0'
+                        }`}
+                      >
+                        {question.imageUrl && (
+                          <div className='p-4'>
+                            <img
+                              src={question.imageUrl}
+                              className='w-full h-auto'
+                            />
+                          </div>
+                        )}
+                      </div>
 
-                    <div className='absolute top-6 right-8 hidden md:block rounded-full py-1 px-2 text-xs font-medium ring-1 ring-inset text-white mb-2 md:mb-0'>
-                      {question.category}
-                    </div>
-                  </li>
-                ))}
+                      <div className='absolute top-6 right-8 hidden md:block rounded-full py-1 px-2 text-xs font-medium ring-1 ring-inset text-white mb-2 md:mb-0'>
+                        {question.category}
+                      </div>
+                    </li>
+                  ))}
             </ul>
           </main>
 
