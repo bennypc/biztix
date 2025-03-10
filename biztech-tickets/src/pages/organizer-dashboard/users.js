@@ -300,7 +300,7 @@ export default function OrganizerDashboard() {
     try {
       const querySnapshot = await getDocs(q);
       if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0]; // Assuming code is unique and only one doc will be returned
+        const userDoc = querySnapshot.docs[0];
         await deleteDoc(userDoc.ref);
         // Refresh the user list after deleting
         fetchUsers();
@@ -591,11 +591,6 @@ export default function OrganizerDashboard() {
                             href="#"
                             className="flex items-center gap-x-4 px-6 py-4 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
                           >
-                            {/* <img
-                              className='h-8 w-8 rounded-full bg-gray-800'
-                              src='https://media.licdn.com/dms/image/D5603AQFviDjG26DlRQ/profile-displayphoto-shrink_800_800/0/1689219654699?e=1700697600&v=beta&t=tZG3pJalB9vELrtZiepeP7CbR8Q829LDzYxWP3Qvx7M'
-                              alt=''
-                            /> */}
                             <span className="sr-only">Your profile</span>
                             <span aria-hidden="true">
                               {user
@@ -642,7 +637,7 @@ export default function OrganizerDashboard() {
                             {item.name}
                           </a>
                         ) : (
-                          <div // using div here since it looks like you want a similar style to the anchor
+                          <div //
                             onClick={item.onClick}
                             className={classNames(
                               item.current
@@ -668,11 +663,6 @@ export default function OrganizerDashboard() {
                     href="#"
                     className="flex items-center gap-x-4 px-6 py-4 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
                   >
-                    {/* <img
-                      className='h-8 w-8 rounded-full bg-gray-800'
-                      src='https://media.licdn.com/dms/image/D5603AQFviDjG26DlRQ/profile-displayphoto-shrink_400_400/0/1689219654699?e=1700697600&v=beta&t=_-LRIlZ6Q_DUqLTa9MZC8uJ3YdmIFX2fS1JFNSuwwPQ'
-                      alt=''
-                    /> */}
                     <span className="sr-only">Your profile</span>
                     <span aria-hidden="true">
                       {user
@@ -849,7 +839,7 @@ export default function OrganizerDashboard() {
           <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
             <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
               <h2 className="text-base font-semibold leading-7 text-white">
-                Hello Hacks Questions
+                ProductX Questions
               </h2>
             </header>
             <div className="mx-8 border-b border-white/5 pb-4  sm:py-6">

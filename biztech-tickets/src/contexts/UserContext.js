@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from "react";
 
 const UserContext = createContext();
 
@@ -12,11 +12,10 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // This runs only on the client side
     setIsClient(true);
 
     // Try to get the user from local storage
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -25,15 +24,14 @@ export const UserProvider = ({ children }) => {
 
   useEffect(() => {
     if (!isClient) {
-      // If we're not on the client side, don't try to use localStorage
       return;
     }
 
     // Update local storage whenever the user changes
     if (user) {
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(user));
     } else {
-      localStorage.removeItem('user');
+      localStorage.removeItem("user");
     }
   }, [user, isClient]);
 

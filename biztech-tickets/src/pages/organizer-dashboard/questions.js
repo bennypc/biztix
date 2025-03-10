@@ -377,11 +377,6 @@ export default function OrganizerQuestions() {
                             href="#"
                             className="flex items-center gap-x-4 px-6 py-4 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
                           >
-                            {/* <img
-                              className='h-8 w-8 rounded-full bg-gray-800'
-                              src='https://media.licdn.com/dms/image/D5603AQFviDjG26DlRQ/profile-displayphoto-shrink_800_800/0/1689219654699?e=1700697600&v=beta&t=tZG3pJalB9vELrtZiepeP7CbR8Q829LDzYxWP3Qvx7M'
-                              alt=''
-                            /> */}
                             <span className="sr-only">Your profile</span>
                             <span aria-hidden="true">
                               {user
@@ -428,7 +423,7 @@ export default function OrganizerQuestions() {
                             {item.name}
                           </a>
                         ) : (
-                          <div // using div here since it looks like you want a similar style to the anchor
+                          <div
                             onClick={item.onClick}
                             className={classNames(
                               item.current
@@ -454,11 +449,6 @@ export default function OrganizerQuestions() {
                     href="#"
                     className="flex items-center gap-x-4 px-6 py-4 text-sm font-semibold leading-6 text-white hover:bg-gray-800"
                   >
-                    {/* <img
-                      className='h-8 w-8 rounded-full bg-gray-800'
-                      src='https://media.licdn.com/dms/image/D5603AQFviDjG26DlRQ/profile-displayphoto-shrink_400_400/0/1689219654699?e=1700697600&v=beta&t=_-LRIlZ6Q_DUqLTa9MZC8uJ3YdmIFX2fS1JFNSuwwPQ'
-                      alt=''
-                    /> */}
                     <span className="sr-only">Your profile</span>
                     <span aria-hidden="true">
                       {user
@@ -473,7 +463,6 @@ export default function OrganizerQuestions() {
         </div>
 
         <div className="xl:pl-72">
-          {/* Sticky search header */}
           <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-white/5 bg-gray-900 px-4 shadow-sm sm:px-6 lg:px-8">
             <button
               type="button"
@@ -742,7 +731,7 @@ export default function OrganizerQuestions() {
           <aside className="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5">
             <header className="flex items-center justify-between border-b border-white/5 px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
               <h2 className="text-base font-semibold leading-7 text-white">
-                Hello Hacks Questions
+                ProductX Questions
               </h2>
             </header>
             <div className="mx-8 pb-6">
@@ -784,8 +773,6 @@ export default function OrganizerQuestions() {
                   <span>{count}</span>
                 </div>
               ))}
-
-              {/* You can replace this with a graphic representation using a library like D3.js or Chart.js for a more visual representation of category distribution. */}
             </div>
           </aside>
         </div>
