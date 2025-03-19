@@ -1,10 +1,10 @@
-import Head from "next/head";
-import Image from "next/image";
-import styles from "@/styles/Home.module.css";
-import { useRouter } from "next/router";
-import { useState, Fragment, useEffect } from "react";
-import { useUser } from "../contexts/UserContext.js"; // Ensure this path points to the correct location
-import { Dialog, Menu, Transition } from "@headlessui/react";
+import Head from "next/head"
+import Image from "next/image"
+import styles from "@/styles/Home.module.css"
+import { useRouter } from "next/router"
+import { useState, Fragment, useEffect } from "react"
+import { useUser } from "../contexts/UserContext.js" // Ensure this path points to the correct location
+import { Dialog, Menu, Transition } from "@headlessui/react"
 import {
   ArrowRightOnRectangleIcon,
   ChartBarSquareIcon,
@@ -16,15 +16,15 @@ import {
   ShieldExclamationIcon,
   SignalIcon,
   XMarkIcon
-} from "@heroicons/react/24/outline";
+} from "@heroicons/react/24/outline"
 import {
   Bars3Icon,
   ChevronRightIcon,
   ChevronUpDownIcon,
   MagnifyingGlassIcon
-} from "@heroicons/react/20/solid";
+} from "@heroicons/react/20/solid"
 
-import { app } from "../../firebaseConfig";
+import { app } from "../../firebaseConfig"
 import {
   collection,
   getDocs,
@@ -34,62 +34,62 @@ import {
   addDoc,
   serverTimestamp,
   onSnapshot
-} from "firebase/firestore";
-import { ref, getDownloadURL, uploadBytes, getStorage } from "firebase/storage";
-var randomstring = require("randomstring");
+} from "firebase/firestore"
+import { ref, getDownloadURL, uploadBytes, getStorage } from "firebase/storage"
+var randomstring = require("randomstring")
 
-const db = getFirestore(app);
-const storage = getStorage(app);
+const db = getFirestore(app)
+const storage = getStorage(app)
 const statuses = {
   pending: "text-yellow-500 bg-yellow-100/10",
   completed: "text-green-400 bg-green-400/10",
   active: "text-rose-400 bg-rose-400/10"
-};
+}
 
 function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
+  return classes.filter(Boolean).join(" ")
 }
 
 function timeAgo(timestamp) {
-  if (!timestamp) return "Just now";
+  if (!timestamp) return "Just now"
 
-  const now = new Date();
-  const questionDate = timestamp.toDate();
-  const secondsAgo = Math.floor((now - questionDate) / 1000);
+  const now = new Date()
+  const questionDate = timestamp.toDate()
+  const secondsAgo = Math.floor((now - questionDate) / 1000)
 
-  if (secondsAgo < 60) return `${secondsAgo} seconds ago`;
-  if (secondsAgo < 3600) return `${Math.floor(secondsAgo / 60)} minutes ago`;
-  if (secondsAgo < 86400) return `${Math.floor(secondsAgo / 3600)} hours ago`;
-  return `${Math.floor(secondsAgo / 86400)} days ago`;
+  if (secondsAgo < 60) return `${secondsAgo} seconds ago`
+  if (secondsAgo < 3600) return `${Math.floor(secondsAgo / 60)} minutes ago`
+  if (secondsAgo < 86400) return `${Math.floor(secondsAgo / 3600)} hours ago`
+  return `${Math.floor(secondsAgo / 86400)} days ago`
 }
 
 function generateTeamInitial(teamName) {
-  if (!teamName) return "";
+  if (!teamName) return ""
 
-  const words = teamName.split(" ");
+  const words = teamName.split(" ")
 
   if (words.length === 1) {
-    return teamName.substring(0, 2).toUpperCase();
+    return teamName.substring(0, 2).toUpperCase()
   }
 
   // Handle "Team X" format
   if (words[0].toLowerCase() === "team" && words[1]) {
-    return `${words[0][0]}${words[1][0]}`.toUpperCase();
+    return `${words[0][0]}${words[1][0]}`.toUpperCase()
   }
 
   // Use the first letters of the first two words
-  return `${words[0][0]}${words[1][0]}`.toUpperCase();
+  return `${words[0][0]}${words[1][0]}`.toUpperCase()
 }
 
 export default function ParticipantDashboard() {
-  const { user, loading, setUser } = useUser();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [questions, setQuestions] = useState([]);
-  const router = useRouter();
+  const { user, loading, setUser } = useUser()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [questions, setQuestions] = useState([])
+  const router = useRouter()
 
-  const [question, setQuestion] = useState("");
-  const [category, setCategory] = useState("Front-end");
-  const [description, setDescription] = useState("");
+  const [question, setQuestion] = useState("")
+  const [category, setCategory] = useState("Front-end")
+  const [description, setDescription] = useState("")
 
   const navigation = [
     {
@@ -117,12 +117,12 @@ export default function ParticipantDashboard() {
       icon: ArrowRightOnRectangleIcon,
       current: false
     }
-  ];
+  ]
 
   function signOut() {
-    localStorage.removeItem("user");
-    setUser(null);
-    router.push("/");
+    localStorage.removeItem("user")
+    setUser(null)
+    router.push("/")
   }
 
   useEffect(() => {
@@ -130,58 +130,58 @@ export default function ParticipantDashboard() {
       const fetchedQuestions = snapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id
-      }));
-      setQuestions(fetchedQuestions);
-    });
+      }))
+      setQuestions(fetchedQuestions)
+    })
 
     // Cleanup listener on component unmount
-    return () => unsubscribe();
-  }, []);
+    return () => unsubscribe()
+  }, [])
 
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([])
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const usersCollection = collection(db, "users");
-      const usersSnapshot = await getDocs(usersCollection);
+      const usersCollection = collection(db, "users")
+      const usersSnapshot = await getDocs(usersCollection)
       const usersList = usersSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()
-      }));
-      setUsers(usersList);
-    };
+      }))
+      setUsers(usersList)
+    }
 
-    fetchUsers();
-  }, []);
+    fetchUsers()
+  }, [])
 
   function findUserNameById(id) {
-    const user = users.find((user) => user.code === id);
-    return user ? user.firstName + " " + user.lastName : null;
+    const user = users.find((user) => user.code === id)
+    return user ? user.firstName + " " + user.lastName : null
   }
-  const [image, setImage] = useState(null);
-  const [imageUrl, setImageUrl] = useState("");
+  const [image, setImage] = useState(null)
+  const [imageUrl, setImageUrl] = useState("")
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
-      setImage(e.target.files[0]);
+      setImage(e.target.files[0])
     }
-  };
+  }
 
   const uploadImage = async () => {
     if (image) {
-      const storageRef = ref(storage, `images/${image.name}`);
-      const snapshot = await uploadBytes(storageRef, image);
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      return downloadURL;
+      const storageRef = ref(storage, `images/${image.name}`)
+      const snapshot = await uploadBytes(storageRef, image)
+      const downloadURL = await getDownloadURL(snapshot.ref)
+      return downloadURL
     }
-    return "";
-  };
+    return ""
+  }
 
   const submitQuestion = async () => {
-    const imageLink = await uploadImage(); // This will handle the image upload
-    const questionID = randomstring.generate(10);
-    const fullName = `${user.firstName} ${user.lastName}`;
-    const timestamp = new Date();
+    const imageLink = await uploadImage() // This will handle the image upload
+    const questionID = randomstring.generate(10)
+    const fullName = `${user.firstName} ${user.lastName}`
+    const timestamp = new Date()
 
     const newQuestion = {
       id: questionID,
@@ -193,38 +193,36 @@ export default function ParticipantDashboard() {
       imageUrl: imageLink, // Add the image URL from Firebase Storage
       status: "active",
       timestamp: serverTimestamp()
-    };
+    }
 
     try {
-      const docRef = await addDoc(collection(db, "tickets"), newQuestion);
-      console.log("Document written with ID: ", docRef.id);
+      const docRef = await addDoc(collection(db, "tickets"), newQuestion)
+      console.log("Document written with ID: ", docRef.id)
       // Reset form and states
-      setQuestion("");
-      setCategory("Front-end");
-      setDescription("");
-      setImage(null);
-      setImageUrl("");
+      setQuestion("")
+      setCategory("Front-end")
+      setDescription("")
+      setImage(null)
+      setImageUrl("")
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error adding document: ", error)
     }
-  };
+  }
 
-  const [expandedQuestionId, setExpandedQuestionId] = useState(null);
+  const [expandedQuestionId, setExpandedQuestionId] = useState(null)
 
   const toggleExpansion = (questionId) => {
-    setExpandedQuestionId(
-      expandedQuestionId === questionId ? null : questionId
-    );
-  };
+    setExpandedQuestionId(expandedQuestionId === questionId ? null : questionId)
+  }
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        console.log("No user found. Redirecting to /");
-        router.push("/");
+        console.log("No user found. Redirecting to /")
+        router.push("/")
       }
     }
-  }, [loading, user, router]);
+  }, [loading, user, router])
 
   return (
     <div className="bg-[#070f21] min-h-screen">
@@ -550,22 +548,22 @@ export default function ParticipantDashboard() {
                   .filter((question) => question.teamName === user.teamName)
                   .sort((a, b) => {
                     // Handle cases where timestamp is null or undefined for a or b
-                    if (!a.timestamp && !b.timestamp) return 0; // If both are missing timestamps, they are equal.
-                    if (!a.timestamp) return 1; // If only a is missing a timestamp, put it last.
-                    if (!b.timestamp) return -1; // If only b is missing a timestamp, put it first.
+                    if (!a.timestamp && !b.timestamp) return 0 // If both are missing timestamps, they are equal.
+                    if (!a.timestamp) return 1 // If only a is missing a timestamp, put it last.
+                    if (!b.timestamp) return -1 // If only b is missing a timestamp, put it first.
 
                     // If either timestamp is "just now", handle the special case
-                    if (timeAgo(a.timestamp) === "just now") return -1;
-                    if (timeAgo(b.timestamp) === "just now") return 1;
+                    if (timeAgo(a.timestamp) === "just now") return -1
+                    if (timeAgo(b.timestamp) === "just now") return 1
 
                     // If either question is "completed", handle that case
                     if (a.status === "completed" && b.status !== "completed")
-                      return 1;
+                      return 1
                     if (b.status === "completed" && a.status !== "completed")
-                      return -1;
+                      return -1
 
                     // If both are active or both are pending, sort based on timestamp
-                    return a.timestamp.seconds - b.timestamp.seconds;
+                    return a.timestamp.seconds - b.timestamp.seconds
                   })
                   .map((question) => (
                     <li key={question.id} className="relative ">
@@ -734,6 +732,7 @@ export default function ParticipantDashboard() {
                   <input
                     type="file"
                     id="image-upload"
+                    accept="image/png, image/jpeg, image/gif"
                     onChange={handleImageChange}
                     className="mt-2 block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4
             file:rounded-md file:border-0 file:text-sm file:font-semibold
@@ -753,5 +752,5 @@ export default function ParticipantDashboard() {
         </div>
       </div>
     </div>
-  );
+  )
 }

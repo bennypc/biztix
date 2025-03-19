@@ -1,10 +1,10 @@
-import Head from "next/head";
-import Image from "next/image";
-import styles from "@/styles/Home.module.css";
-import { useRouter } from "next/router";
-import { useState, Fragment, useEffect, useRef } from "react";
-import { useUser } from "../../contexts/UserContext.js"; // Ensure this path points to the correct location
-import { Dialog, Menu, Transition } from "@headlessui/react";
+import Head from "next/head"
+import Image from "next/image"
+import styles from "@/styles/Home.module.css"
+import { useRouter } from "next/router"
+import { useState, Fragment, useEffect, useRef } from "react"
+import { useUser } from "../../contexts/UserContext.js" // Ensure this path points to the correct location
+import { Dialog, Menu, Transition } from "@headlessui/react"
 import {
   ArrowRightOnRectangleIcon,
   ChartBarSquareIcon,
@@ -17,15 +17,15 @@ import {
   UserGroupIcon,
   UserIcon,
   XMarkIcon
-} from "@heroicons/react/24/outline";
+} from "@heroicons/react/24/outline"
 import {
   Bars3Icon,
   ChevronRightIcon,
   ChevronUpDownIcon,
   MagnifyingGlassIcon
-} from "@heroicons/react/20/solid";
+} from "@heroicons/react/20/solid"
 
-import { app } from "../../../firebaseConfig.js";
+import { app } from "../../../firebaseConfig.js"
 import {
   collection,
   getDocs,
@@ -40,64 +40,64 @@ import {
   deleteDoc,
   arrayRemove,
   arrayUnion
-} from "firebase/firestore";
-var randomstring = require("randomstring");
+} from "firebase/firestore"
+var randomstring = require("randomstring")
 
-const db = getFirestore(app);
+const db = getFirestore(app)
 
 const statuses = {
   pending: "text-yellow-500 bg-yellow-100/10",
   completed: "text-green-400 bg-green-400/10",
   active: "text-rose-400 bg-rose-400/10"
-};
+}
 
 function classNames(...classes) {
-  return classes.filter(Boolean).join(" ");
+  return classes.filter(Boolean).join(" ")
 }
 
 function timeAgo(timestamp) {
-  if (!timestamp) return "Just now";
+  if (!timestamp) return "Just now"
 
-  const now = new Date();
-  const questionDate = timestamp.toDate();
-  const secondsAgo = Math.floor((now - questionDate) / 1000);
+  const now = new Date()
+  const questionDate = timestamp.toDate()
+  const secondsAgo = Math.floor((now - questionDate) / 1000)
 
-  if (secondsAgo < 60) return `${secondsAgo} seconds ago`;
-  if (secondsAgo < 3600) return `${Math.floor(secondsAgo / 60)} minutes ago`;
-  if (secondsAgo < 86400) return `${Math.floor(secondsAgo / 3600)} hours ago`;
-  return `${Math.floor(secondsAgo / 86400)} days ago`;
+  if (secondsAgo < 60) return `${secondsAgo} seconds ago`
+  if (secondsAgo < 3600) return `${Math.floor(secondsAgo / 60)} minutes ago`
+  if (secondsAgo < 86400) return `${Math.floor(secondsAgo / 3600)} hours ago`
+  return `${Math.floor(secondsAgo / 86400)} days ago`
 }
 
 export default function OrganizerDashboard() {
-  const router = useRouter();
+  const router = useRouter()
 
-  const { user, loading, setUser } = useUser();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [questions, setQuestions] = useState([]);
+  const { user, loading, setUser } = useUser()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [questions, setQuestions] = useState([])
 
-  const [question, setQuestion] = useState("");
-  const [category, setCategory] = useState("Front-end");
-  const [description, setDescription] = useState("");
-  const [users, setUsers] = useState([]);
-  const [teams, setTeams] = useState([]);
+  const [question, setQuestion] = useState("")
+  const [category, setCategory] = useState("Front-end")
+  const [description, setDescription] = useState("")
+  const [users, setUsers] = useState([])
+  const [teams, setTeams] = useState([])
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [role, setRole] = useState("organizer");
-  const [team, setTeam] = useState("Select Team");
+  const [firstName, setFirstName] = useState("")
+  const [lastName, setLastName] = useState("")
+  const [role, setRole] = useState("organizer")
+  const [team, setTeam] = useState("Select Team")
 
-  const [teamName, setTeamName] = useState("");
+  const [teamName, setTeamName] = useState("")
 
-  const [openCreateTeamModal, setOpenCreateTeamModal] = useState(false);
-  const [openCreateUserModal, setOpenCreateUserModal] = useState(false);
+  const [openCreateTeamModal, setOpenCreateTeamModal] = useState(false)
+  const [openCreateUserModal, setOpenCreateUserModal] = useState(false)
 
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editModalFirstName, setEditModalFirstName] = useState("");
-  const [editModalLastName, setEditModalLastName] = useState("");
-  const [editModalRole, setEditModalRole] = useState("");
-  const [editModalTeam, setEditModalTeam] = useState("");
-  const [editModalCode, setEditModalCode] = useState("");
-  const cancelButtonRef = useRef(null);
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [editModalFirstName, setEditModalFirstName] = useState("")
+  const [editModalLastName, setEditModalLastName] = useState("")
+  const [editModalRole, setEditModalRole] = useState("")
+  const [editModalTeam, setEditModalTeam] = useState("")
+  const [editModalCode, setEditModalCode] = useState("")
+  const cancelButtonRef = useRef(null)
 
   const navigation = [
     {
@@ -130,92 +130,90 @@ export default function OrganizerDashboard() {
       icon: ArrowRightOnRectangleIcon,
       current: false
     }
-  ];
+  ]
 
   function signOut() {
-    localStorage.removeItem("user");
-    setUser(null);
-    router.push("/");
+    localStorage.removeItem("user")
+    setUser(null)
+    router.push("/")
   }
   const fetchUsers = async () => {
     try {
-      const userCollection = collection(db, "users");
-      const userSnapshot = await getDocs(userCollection);
+      const userCollection = collection(db, "users")
+      const userSnapshot = await getDocs(userCollection)
       const usersData = userSnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()
-      }));
-      setUsers(usersData);
+      }))
+      setUsers(usersData)
     } catch (error) {
-      console.error("Error fetching users: ", error);
+      console.error("Error fetching users: ", error)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchUsers();
-    fetchTeams();
-  }, []);
+    fetchUsers()
+    fetchTeams()
+  }, [])
 
   const fetchTeams = async () => {
     try {
-      const teamsRef = collection(db, "teams");
-      const teamSnapshots = await getDocs(teamsRef);
+      const teamsRef = collection(db, "teams")
+      const teamSnapshots = await getDocs(teamsRef)
       const teams = teamSnapshots.docs.map((doc) => ({
         id: doc.id,
         ...doc.data()
-      }));
-      setTeams(teams);
+      }))
+      setTeams(teams)
     } catch (error) {
-      console.error("Error fetching teams: ", error);
+      console.error("Error fetching teams: ", error)
     }
-  };
+  }
 
-  const [totalUsers, setTotalUsers] = useState(0);
-  const [mentorsCount, setMentorsCount] = useState(0);
-  const [organizersCount, setOrganizersCount] = useState(0);
-  const [participantsCount, setParticipantsCount] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0)
+  const [mentorsCount, setMentorsCount] = useState(0)
+  const [organizersCount, setOrganizersCount] = useState(0)
+  const [participantsCount, setParticipantsCount] = useState(0)
 
   useEffect(() => {
-    setTotalUsers(users.length);
-    setMentorsCount(users.filter((user) => user.role === "mentor").length);
-    setOrganizersCount(
-      users.filter((user) => user.role === "organizer").length
-    );
+    setTotalUsers(users.length)
+    setMentorsCount(users.filter((user) => user.role === "mentor").length)
+    setOrganizersCount(users.filter((user) => user.role === "organizer").length)
     setParticipantsCount(
       users.filter((user) => user.role === "participant").length
-    );
-  }, [users]);
+    )
+  }, [users])
 
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "tickets"), (snapshot) => {
       const fetchedQuestions = snapshot.docs.map((doc) => ({
         ...doc.data(),
         id: doc.id
-      }));
-      setQuestions(fetchedQuestions);
-    });
+      }))
+      setQuestions(fetchedQuestions)
+    })
 
     // Cleanup listener on component unmount
-    return () => unsubscribe();
-  }, []);
+    return () => unsubscribe()
+  }, [])
 
   async function createTeam() {
     // Check if the teamName is empty
     if (!teamName.trim()) {
-      alert("Please enter a team name.");
-      return;
+      alert("Please enter a team name.")
+      return
     }
 
     // Create a reference to the teams collection
-    const teamsRef = collection(db, "teams");
+    const teamsRef = collection(db, "teams")
 
     // Check if a team with the same name already exists
-    const teamExistsQuery = query(teamsRef, where("teamName", "==", teamName));
-    const teamExists = await getDocs(teamExistsQuery);
+    const teamExistsQuery = query(teamsRef, where("teamName", "==", teamName))
+    const teamExists = await getDocs(teamExistsQuery)
 
     if (!teamExists.empty) {
-      alert("A team with this name already exists.");
-      return;
+      alert("A team with this name already exists.")
+      return
     }
 
     // Add the new team to Firestore
@@ -224,18 +222,18 @@ export default function OrganizerDashboard() {
         teamName: teamName,
         teamMembers: [], // Initially empty.
         createdAt: serverTimestamp()
-      });
+      })
 
-      setTeamName(""); // Reset the input field
-      setOpenCreateTeamModal(false); // Close the modal or respective UI
-      fetchTeams();
+      setTeamName("") // Reset the input field
+      setOpenCreateTeamModal(false) // Close the modal or respective UI
+      fetchTeams()
     } catch (error) {
-      console.error("Error creating team: ", error);
+      console.error("Error creating team: ", error)
     }
   }
   async function createUser() {
-    const userCode = generateCode(8);
-    let userData;
+    const userCode = generateCode(4)
+    let userData
 
     if (role === "participant") {
       userData = {
@@ -244,31 +242,31 @@ export default function OrganizerDashboard() {
         role: role,
         code: userCode,
         teamName: team
-      };
+      }
     } else {
       userData = {
         firstName: firstName,
         lastName: lastName,
         role: role,
         code: userCode
-      };
+      }
     }
 
     try {
       // Add the user to the 'users' collection
-      await addDoc(collection(db, "users"), userData);
+      await addDoc(collection(db, "users"), userData)
 
       // If the user is a participant, also update the team
       if (role === "participant" && team) {
         const teamQuery = query(
           collection(db, "teams"),
           where("teamName", "==", team)
-        );
+        )
 
-        const teamSnapshot = await getDocs(teamQuery);
+        const teamSnapshot = await getDocs(teamQuery)
 
         if (!teamSnapshot.empty) {
-          const teamDoc = teamSnapshot.docs[0];
+          const teamDoc = teamSnapshot.docs[0]
 
           await updateDoc(teamDoc.ref, {
             teamMembers: arrayUnion({
@@ -276,46 +274,46 @@ export default function OrganizerDashboard() {
               lastName: lastName,
               code: userCode
             })
-          });
+          })
         } else {
-          console.error("No team found with name:", team);
+          console.error("No team found with name:", team)
         }
       }
 
-      setFirstName("");
-      setLastName("");
-      setTeam("Select Team"); // Reset the input field
-      setRole("mentor");
-      setOpenCreateUserModal(false);
-      fetchUsers();
+      setFirstName("")
+      setLastName("")
+      setTeam("Select Team") // Reset the input field
+      setRole("mentor")
+      setOpenCreateUserModal(false)
+      fetchUsers()
     } catch (error) {
-      console.log(error);
+      console.log(error)
     }
   }
 
   async function deleteUser(code) {
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("code", "==", code));
+    const usersRef = collection(db, "users")
+    const q = query(usersRef, where("code", "==", code))
 
     try {
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await getDocs(q)
       if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0];
-        await deleteDoc(userDoc.ref);
+        const userDoc = querySnapshot.docs[0]
+        await deleteDoc(userDoc.ref)
         // Refresh the user list after deleting
-        fetchUsers();
+        fetchUsers()
       } else {
-        console.error("No user found with code:", userCode);
+        console.error("No user found with code:", userCode)
       }
     } catch (error) {
-      console.error("Error deleting user:", error);
+      console.error("Error deleting user:", error)
     }
   }
 
   async function submitQuestion() {
-    const questionID = randomstring.generate(10);
-    const fullName = `${user.firstName} ${user.lastName}`;
-    const timestamp = new Date();
+    const questionID = randomstring.generate(10)
+    const fullName = `${user.firstName} ${user.lastName}`
+    const timestamp = new Date()
 
     const newQuestion = {
       id: questionID,
@@ -326,52 +324,52 @@ export default function OrganizerDashboard() {
       description,
       status: "active",
       timestamp: serverTimestamp()
-    };
+    }
 
     try {
-      const docRef = await addDoc(collection(db, "tickets"), newQuestion);
-      console.log("Document written with ID: ", docRef.id);
-      setQuestion("");
-      setCategory("Front-end");
-      setDescription("");
+      const docRef = await addDoc(collection(db, "tickets"), newQuestion)
+      console.log("Document written with ID: ", docRef.id)
+      setQuestion("")
+      setCategory("Front-end")
+      setDescription("")
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error adding document: ", error)
     }
   }
   function handleEditModalOpen(user) {
-    setEditModalFirstName(user.firstName);
-    setEditModalLastName(user.lastName);
-    setEditModalRole(user.role);
-    setEditModalTeam(user.teamName);
-    setEditModalCode(user.code);
-    setEditModalOpen(true);
+    setEditModalFirstName(user.firstName)
+    setEditModalLastName(user.lastName)
+    setEditModalRole(user.role)
+    setEditModalTeam(user.teamName)
+    setEditModalCode(user.code)
+    setEditModalOpen(true)
   }
   async function updateUser() {
     // Get a reference to the users collection and create a query based on the code
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("code", "==", editModalCode));
+    const usersRef = collection(db, "users")
+    const q = query(usersRef, where("code", "==", editModalCode))
 
     // Construct the updated user data object
     const updatedUserData = {
       firstName: editModalFirstName,
       lastName: editModalLastName,
       role: editModalRole
-    };
+    }
 
     if (editModalRole === "participant" && editModalTeam) {
-      updatedUserData.teamName = editModalTeam;
+      updatedUserData.teamName = editModalTeam
     } else if (editModalRole !== "participant") {
-      updatedUserData.teamName = firebase.firestore.FieldValue.delete();
+      updatedUserData.teamName = firebase.firestore.FieldValue.delete()
     }
 
     try {
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await getDocs(q)
 
       if (!querySnapshot.empty) {
-        const userDoc = querySnapshot.docs[0];
-        const oldTeamName = userDoc.data().teamName;
+        const userDoc = querySnapshot.docs[0]
+        const oldTeamName = userDoc.data().teamName
 
-        await updateDoc(doc(db, "users", userDoc.id), updatedUserData);
+        await updateDoc(doc(db, "users", userDoc.id), updatedUserData)
 
         // Update the teams collection if necessary
         if (oldTeamName !== editModalTeam || editModalRole !== "participant") {
@@ -380,9 +378,9 @@ export default function OrganizerDashboard() {
             const oldTeamQuery = query(
               collection(db, "teams"),
               where("teamName", "==", oldTeamName)
-            );
-            const oldTeamSnapshot = await getDocs(oldTeamQuery);
-            const oldTeamDoc = oldTeamSnapshot.docs[0];
+            )
+            const oldTeamSnapshot = await getDocs(oldTeamQuery)
+            const oldTeamDoc = oldTeamSnapshot.docs[0]
 
             await updateDoc(oldTeamDoc.ref, {
               teamMembers: arrayRemove({
@@ -390,7 +388,7 @@ export default function OrganizerDashboard() {
                 lastName: editModalLastName,
                 code: editModalCode
               })
-            });
+            })
           }
 
           // Add user to the new team
@@ -398,9 +396,9 @@ export default function OrganizerDashboard() {
             const newTeamQuery = query(
               collection(db, "teams"),
               where("teamName", "==", editModalTeam)
-            );
-            const newTeamSnapshot = await getDocs(newTeamQuery);
-            const newTeamDoc = newTeamSnapshot.docs[0];
+            )
+            const newTeamSnapshot = await getDocs(newTeamQuery)
+            const newTeamDoc = newTeamSnapshot.docs[0]
 
             await updateDoc(newTeamDoc.ref, {
               teamMembers: arrayUnion({
@@ -408,75 +406,72 @@ export default function OrganizerDashboard() {
                 lastName: editModalLastName,
                 code: editModalCode
               })
-            });
+            })
           }
         }
 
-        setEditModalOpen(false);
-        fetchUsers();
+        setEditModalOpen(false)
+        fetchUsers()
       } else {
-        console.error("No user found with code:", editModalCode);
+        console.error("No user found with code:", editModalCode)
       }
     } catch (error) {
-      console.error("Error updating user:", error);
+      console.error("Error updating user:", error)
     }
   }
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        console.log("No user found. Redirecting to /");
-        router.push("/");
+        console.log("No user found. Redirecting to /")
+        router.push("/")
       }
     }
-  }, [loading, user, router]);
+  }, [loading, user, router])
 
   if (!user || (user.role !== "mentor" && user.role !== "organizer")) {
     return (
       <div>
         <p className="text-white">You don't have access to this page.</p>
       </div>
-    );
+    )
   }
 
   function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
+    return string.charAt(0).toUpperCase() + string.slice(1)
   }
 
   function generateCode(length) {
-    const characters =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let result = "";
+    const characters = "abcdefghijklmnopqrstuvwxyz0123456789"
+    let result = ""
     for (let i = 0; i < length; i++) {
-      result += characters.charAt(
-        Math.floor(Math.random() * characters.length)
-      );
+      result += characters.charAt(Math.floor(Math.random() * characters.length))
     }
-    return result;
+    return result
   }
 
   async function handleStatusChange(questionId) {
     // Identify which question to update based on its ID
-    const questionRef = doc(db, "tickets", questionId);
+    const questionRef = doc(db, "tickets", questionId)
 
     // Fetch the current status of the question from your state or Firestore
-    const currentStatus = questions.find((q) => q.id === questionId).status;
+    const currentStatus = questions.find((q) => q.id === questionId).status
 
-    let updatedStatus;
+    let updatedStatus
 
     if (currentStatus === "active") {
-      updatedStatus = "pending";
+      updatedStatus = "pending"
     } else if (currentStatus === "pending") {
-      updatedStatus = "completed";
+      updatedStatus = "completed"
     } else {
       // If the current status is "completed", no further actions are needed.
-      return;
+      return
     }
 
     // Update the status in Firestore
     await updateDoc(questionRef, {
       status: updatedStatus
-    });
+    })
   }
 
   return (
@@ -773,11 +768,11 @@ export default function OrganizerDashboard() {
             <ul role="list" className="divide-y divide-white/5">
               {users
                 .sort((a, b) => {
-                  const nameA = `${a.firstName} ${a.lastName}`.toUpperCase();
-                  const nameB = `${b.firstName} ${b.lastName}`.toUpperCase();
-                  if (nameA < nameB) return -1;
-                  if (nameA > nameB) return 1;
-                  return 0;
+                  const nameA = `${a.firstName} ${a.lastName}`.toUpperCase()
+                  const nameB = `${b.firstName} ${b.lastName}`.toUpperCase()
+                  if (nameA < nameB) return -1
+                  if (nameA > nameB) return 1
+                  return 0
                 })
                 .map((user) => (
                   <li
@@ -867,10 +862,10 @@ export default function OrganizerDashboard() {
               {Object.entries(
                 questions.reduce((acc, q) => {
                   if (!acc[q.category]) {
-                    acc[q.category] = 0;
+                    acc[q.category] = 0
                   }
-                  acc[q.category]++;
-                  return acc;
+                  acc[q.category]++
+                  return acc
                 }, {})
               ).map(([category, count]) => (
                 <div
@@ -1093,20 +1088,20 @@ export default function OrganizerDashboard() {
                                 .sort((a, b) => {
                                   const numA = parseInt(
                                     a.teamName.replace(/[^0-9]/g, "")
-                                  );
+                                  )
                                   const numB = parseInt(
                                     b.teamName.replace(/[^0-9]/g, "")
-                                  );
+                                  )
 
                                   if (!isNaN(numA) && !isNaN(numB)) {
-                                    return numA - numB; // Sort numerically if both are numbers
+                                    return numA - numB // Sort numerically if both are numbers
                                   } else if (!isNaN(numA)) {
-                                    return -1; // If only 'a' is a number, it comes first
+                                    return -1 // If only 'a' is a number, it comes first
                                   } else if (!isNaN(numB)) {
-                                    return 1; // If only 'b' is a number, it comes first
+                                    return 1 // If only 'b' is a number, it comes first
                                   }
 
-                                  return a.teamName.localeCompare(b.teamName); // Fallback to lexicographical ordering
+                                  return a.teamName.localeCompare(b.teamName) // Fallback to lexicographical ordering
                                 })
                                 .map((t) => (
                                   <option key={t.id} value={t.teamName}>
@@ -1239,20 +1234,20 @@ export default function OrganizerDashboard() {
                               .sort((a, b) => {
                                 const numA = parseInt(
                                   a.teamName.replace(/[^0-9]/g, "")
-                                );
+                                )
                                 const numB = parseInt(
                                   b.teamName.replace(/[^0-9]/g, "")
-                                );
+                                )
 
                                 if (!isNaN(numA) && !isNaN(numB)) {
-                                  return numA - numB; // Sort numerically if both are numbers
+                                  return numA - numB // Sort numerically if both are numbers
                                 } else if (!isNaN(numA)) {
-                                  return -1; // If only 'a' is a number, it comes first
+                                  return -1 // If only 'a' is a number, it comes first
                                 } else if (!isNaN(numB)) {
-                                  return 1; // If only 'b' is a number, it comes first
+                                  return 1 // If only 'b' is a number, it comes first
                                 }
 
-                                return a.teamName.localeCompare(b.teamName); // Fallback to lexicographical ordering
+                                return a.teamName.localeCompare(b.teamName) // Fallback to lexicographical ordering
                               })
                               .map((t) => (
                                 <option key={t.id} value={t.teamName}>
@@ -1288,5 +1283,5 @@ export default function OrganizerDashboard() {
         </Dialog>
       </Transition.Root>
     </div>
-  );
+  )
 }
