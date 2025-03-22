@@ -99,12 +99,12 @@ export default function ParticipantDashboard() {
       current: true
     },
 
-    {
-      name: "Games",
-      href: "/games",
-      icon: PuzzlePieceIcon,
-      current: false
-    },
+    // {
+    //   name: "Games",
+    //   href: "/games",
+    //   icon: PuzzlePieceIcon,
+    //   current: false
+    // },
     {
       name: "Report an Issue",
       href: "/report-issue",
